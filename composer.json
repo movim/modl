@@ -1,0 +1,19 @@
+{
+    "name": "movim/modl",
+    "description": "A light PHP Database layer using DAO pattern",
+    "keywords": ["database", "dao", "sql"],
+    "homepage": "http://github.com/edhelas/modl",
+    "type": "library",
+    "license": "AGPLv3",
+    "authors": [
+        {
+            "name": "Jaussoin Timothée",
+            "email": "edhelas@movim.eu",
+            "homepage": "http://edhelas.movim.eu"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "monolog/monolog": "1.8.*"
+    }
+}
