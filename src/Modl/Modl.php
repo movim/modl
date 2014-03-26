@@ -24,13 +24,6 @@
 
 namespace Modl;
 
-use Modl\Utils;
-use Modl\Logger;
-use Modl\Modl;
-use Modl\SQL;
-use Modl\SmartDB;
-use Modl\Model;
-
 class Modl {
     protected $_db;
     

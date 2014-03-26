@@ -107,11 +107,11 @@ class SQL extends Modl {
         if($this->_resultset != null) {
             $errors = $this->_resultset->errorInfo();
             if($errors[0] != '000000') {
-                ModlLogger::log($this->_sql."\n");
-                ModlLogger::log($this->_params);
+                Logger::log($this->_sql."\n");
+                Logger::log($this->_params);
 
-                ModlLogger::log($errors[1]);
-                ModlLogger::log($errors[2]);
+                Logger::log($errors[1]);
+                Logger::log($errors[2]);
             }
             
             if($this->_resultset->rowCount() == 0)
