@@ -1,6 +1,5 @@
 {
     "name": "movim/modl",
-    "version": "dev-master",
     "description": "A light PHP Database layer using DAO pattern",
     "keywords": ["database", "dao", "sql"],
     "homepage": "http://github.com/edhelas/modl",
