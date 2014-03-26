@@ -36,29 +36,6 @@ class Model extends Modl {
         if($name == '_struct')
             return $this->_decoded_struct;
         elseif(property_exists($this, $name)) {
-            //$attr = array();
-            
-            //$struct = json_decode($this->_struct);
-            
-            /*$attr['value'] = $this->$name;
-
-            if(isset($struct->$name->type))
-                $attr['type'] = $struct->$name->type;
-            else
-                $attr['type'] = null;
-            
-            if(isset($struct->$name->size))
-                $attr['size'] = $struct->$name->size;
-            else
-                $attr['size'] = null;
-
-            if(isset($struct->$name->mandatory) 
-            && $struct->$name->mandatory == true)
-                $attr['mandatory'] = $struct->$name->mandatory;
-            else
-                $attr['mandatory'] = false;
-                
-            return (object)$attr;*/
             return $this->$name;
         }
     }
@@ -104,17 +81,6 @@ class Model extends Modl {
     }
 
     public function clean() {
-        /*
-        $struct = $this->_decoded_struct;
-
-        if(isset($struct)) {
-            foreach($struct as $key => $value) {
-                if(isset($value->protect) && $value->protect) {
-                    unset($this->$key);
-                }
-            }
-        }
-        */
         unset($this->_struct);
         unset($this->_db);
         unset($this->_dbtype);

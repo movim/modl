@@ -24,13 +24,6 @@
 
 namespace Modl;
 
-use Modl\Utils;
-use Modl\Logger;
-use Modl\Modl;
-use Modl\SQL;
-use Modl\SmartDB;
-use Modl\Model;
-
 class Modl {
     protected $_db;
     
@@ -115,7 +108,7 @@ class Modl {
     }
     
     public function check($apply = false) {
-        $msdb = new ModlSmartDB();
+        $msdb = new SmartDB();
         return $msdb->check($apply);
     }
     
@@ -133,7 +126,7 @@ class Modl {
             $this->_connected = true;
         } catch (PDOException $e) {
             $this->_connected = false;
-            ModlLogger::log($e->getMessage());
+            Logger::log($e->getMessage());
             die();
         }
     }
@@ -146,7 +139,7 @@ class Modl {
     }
     
     public function getSupportedDatabases() {
-        return getDBList();
+        return Utils::getDBList();
     }
     
     /**

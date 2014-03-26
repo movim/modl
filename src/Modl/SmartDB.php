@@ -24,7 +24,7 @@
 
 namespace Modl;
 
-class SmartDB extends ModlSQL {    
+class SmartDB extends SQL {    
     function __construct() {
         parent::inject($this);
     }
@@ -266,7 +266,7 @@ class SmartDB extends ModlSQL {
         $table_name  = strtolower($table_name);
         $column_name = strtolower($column_name);
         
-        ModlLogger::log('Updating column '.$column_name);
+        Logger::log('Updating column '.$column_name);
         
         $type = $size = false;
 
@@ -291,7 +291,7 @@ class SmartDB extends ModlSQL {
         
         $pk = substr_replace($pk, '', -1);
         
-        ModlLogger::log('Creating the keys '.$pk.' for '.$table_name);
+        Logger::log('Creating the keys '.$pk.' for '.$table_name);
             
         switch($this->_dbtype) {
             case 'mysql':
