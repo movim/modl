@@ -1,6 +1,6 @@
 {
     "name": "movim/modl",
-    "version": "1.0.0-alpha1",
+    "version": "1.0.0-alpha2",
     "description": "A light PHP Database layer using DAO pattern",
     "keywords": ["database", "dao", "sql"],
     "homepage": "http://github.com/edhelas/modl",
@@ -15,7 +15,7 @@
     ],
     "autoload": {
         "psr-0": {
-            "Modl\\": "src/"
+            "Modl\\": "src/Modl"
         }
     },
     "require": {
