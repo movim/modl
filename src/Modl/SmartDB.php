@@ -24,7 +24,7 @@
 
 namespace Modl;
 
-class SmartDB extends ModlSQL {    
+class SmartDB extends SQL {    
     function __construct() {
         parent::inject($this);
     }

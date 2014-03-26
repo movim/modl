@@ -115,7 +115,7 @@ class Modl {
     }
     
     public function check($apply = false) {
-        $msdb = new ModlSmartDB();
+        $msdb = new SmartDB();
         return $msdb->check($apply);
     }
     
@@ -133,7 +133,7 @@ class Modl {
             $this->_connected = true;
         } catch (PDOException $e) {
             $this->_connected = false;
-            ModlLogger::log($e->getMessage());
+            Logger::log($e->getMessage());
             die();
         }
     }
@@ -146,7 +146,7 @@ class Modl {
     }
     
     public function getSupportedDatabases() {
-        return getDBList();
+        return Utils::getDBList();
     }
     
     /**
