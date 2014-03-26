@@ -10,6 +10,10 @@ use Modl\Modl;
 use Modl\ModlSQL;
 use Modl\ModlSmartDB;
 use Modl\ModlModel;
+
+class Loader {
+
+}
 /*
 $base = __DIR__.'/';
 

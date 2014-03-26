@@ -24,7 +24,7 @@
 
 namespace Modl;
 
-class ModlModel extends Modl {
+class Model extends Modl {
     protected $_struct;
     private $_decoded_struct;
     

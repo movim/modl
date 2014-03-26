@@ -24,7 +24,7 @@
 
 namespace Modl;
 
-class ModlSQL extends Modl {
+class SQL extends Modl {
     protected $_sql = '';
     private $_resultset;
     private $_params;

@@ -2,7 +2,7 @@
 
 namespace Modl;
 
-class ModlLogger {
+class Logger {
     static $_logs = array();
     
     public static function log($message, $priority = '') 
