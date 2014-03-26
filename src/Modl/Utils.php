@@ -2,6 +2,11 @@
 
 namespace Modl;
 
+use Monolog\Logger;
+use Monolog\Handler\SyslogHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\NormalizerFormatter;
+
 class Utils {
 
     static function getDBList() {
@@ -27,4 +32,12 @@ class Utils {
         }
     }
 
+    public static function log($message, $arr = array(), $arr2 = array()) 
+    {
+        $log = new Logger('modl');
+        $log->pushHandler(new SyslogHandler('modl'));
+        
+        $log->pushHandler(new StreamHandler(LOG_PATH.'/sql.log', Logger::DEBUG));
+        $log->addInfo($message);
+    }
 }
