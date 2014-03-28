@@ -38,6 +38,6 @@ class Utils {
         $log->pushHandler(new SyslogHandler('modl'));
         
         $log->pushHandler(new StreamHandler(LOG_PATH.'/sql.log', Logger::DEBUG));
-        $log->addInfo($message);
+        $log->addInfo($message, $arr, $arr2);
     }
 }
