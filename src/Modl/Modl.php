@@ -126,7 +126,7 @@ class Modl {
             $this->_connected = true;
         } catch (PDOException $e) {
             $this->_connected = false;
-            Logger::log($e->getMessage());
+            Utils::log($e->getMessage());
             die();
         }
     }

@@ -219,7 +219,7 @@ class SmartDB extends SQL {
     }
     
     private function createTable($name) {
-        ModlLogger::log('Creating table '.$name);
+        Utils::log('Creating table '.$name);
         $name = strtolower($name);
         
         $sql = '
@@ -246,7 +246,7 @@ class SmartDB extends SQL {
         $table_name  = strtolower($table_name);
         $column_name = strtolower($column_name);
         
-        ModlLogger::log('Creating column '.$column_name);
+        Utils::log('Creating column '.$column_name);
         
         $type = $size = false;
 
@@ -266,7 +266,7 @@ class SmartDB extends SQL {
         $table_name  = strtolower($table_name);
         $column_name = strtolower($column_name);
         
-        Logger::log('Updating column '.$column_name);
+        Utils::log('Updating column '.$column_name);
         
         $type = $size = false;
 
@@ -291,7 +291,7 @@ class SmartDB extends SQL {
         
         $pk = substr_replace($pk, '', -1);
         
-        Logger::log('Creating the keys '.$pk.' for '.$table_name);
+        Utils::log('Creating the keys '.$pk.' for '.$table_name);
             
         switch($this->_dbtype) {
             case 'mysql':
