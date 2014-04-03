@@ -99,7 +99,7 @@ class SQL extends Modl {
         if(empty($this->_warnings))
             $this->_resultset->execute();
         else {
-            Utils::log($this->_warnings);
+            Utils::log('SQL query error', null, $this->_warnings);
         }
 
         $this->_warnings = array();
@@ -107,10 +107,7 @@ class SQL extends Modl {
         if($this->_resultset != null) {
             $errors = $this->_resultset->errorInfo();
             if($errors[0] != '000000') {
-                Utils::log(trim($this->_sql), $this->_params, $errors);
-
-                Utils::log($errors[1]);
-                Utils::log($errors[2]);
+                Utils::log('SQL query error: "' . trim($this->_sql) . '"', null, array($this->_params, $errors));
             }
             
             if($this->_resultset->rowCount() == 0)
