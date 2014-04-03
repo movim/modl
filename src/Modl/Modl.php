@@ -124,9 +124,9 @@ class Modl {
             );
             
             $this->_connected = true;
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
             $this->_connected = false;
-            Utils::log($e->getMessage());
+            Utils::log($e->getMessage(), \Monolog\Logger::CRITICAL);
             die();
         }
     }
