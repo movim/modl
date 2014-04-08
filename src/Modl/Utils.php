@@ -34,13 +34,17 @@ class Utils {
 
     public static function log($message, $arr = array(), $arr2 = array()) 
     {
-        $log = new Logger('modl');
-        $log->pushHandler(new SyslogHandler('modl'));
-        
-        $log->pushHandler(new StreamHandler(LOG_PATH.'/sql.log', Logger::DEBUG));
-        if(is_array($arr) && is_array($arr2))
-            $log->addInfo($message, $arr, $arr2);
-        else
-            $log->addInfo($message);
+        if(LOG_LEVEL != null && LOG_LEVEL > 0) {
+            $log = new Logger('modl');
+            $log->pushHandler(new SyslogHandler('modl'));
+
+            if(LOG_LEVEL > 1)
+                $log->pushHandler(new StreamHandler(LOG_PATH.'/sql.log', Logger::DEBUG));
+                
+            if(is_array($arr) && is_array($arr2))
+                $log->addInfo($message, $arr, $arr2);
+            else
+                $log->addInfo($message);
+        }
     }
 }
