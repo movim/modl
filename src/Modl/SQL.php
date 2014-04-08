@@ -124,15 +124,17 @@ class SQL extends Modl {
                 $results = array();
                 
                 while($row = $this->_resultset->fetch(\PDO::FETCH_NAMED)) {
-                    
+
                     $obj = new $ns_classname;
                     foreach($row as $key => $value) {
-                        if(is_array($value)) {
-                            $value = $value[0];
+                        if(isset($value)) {
+                            if(is_array($value)) {
+                                $value = $value[0];
+                            }
+                            
+                            if(property_exists($obj, $key))
+                                $obj->$key = $value;
                         }
-                        
-                        if(property_exists($obj, $key))
-                            $obj->$key = $value;
                     }
                     
                     array_push($results, $obj);
