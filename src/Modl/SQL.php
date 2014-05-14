@@ -58,8 +58,11 @@ class SQL extends Modl {
 
                     if(isset($struct))
                         foreach($params as $key => $value) {
-                            if(isset($struct->$key)) {
-                                $caract = $struct->$key;
+                            $a = explode('_', $key);
+                            $ckey = reset($a);
+                            
+                            if(isset($struct->$ckey)) {                           
+                                $caract = $struct->$ckey;
                                 
                                 if(isset($caract->mandatory) 
                                 && $caract->mandatory == true 

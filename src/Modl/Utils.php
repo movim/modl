@@ -32,7 +32,7 @@ class Utils {
         }
     }
 
-    public static function log($message, $arr = array(), $arr2 = array()) 
+    public static function log($message, $arr = false, $arr2 = false) 
     {
         if(LOG_LEVEL != null && LOG_LEVEL > 0) {
             $log = new Logger('modl');
@@ -43,8 +43,10 @@ class Utils {
                 
             if(is_array($arr) && is_array($arr2))
                 $log->addInfo($message, $arr, $arr2);
-            else
+            elseif(is_array($arr))
                 $log->addInfo($message);
+            else
+                $log->addInfo(serialize($message));
         }
     }
 }

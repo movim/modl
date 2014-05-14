@@ -110,7 +110,7 @@ class SmartDB extends SQL {
             
             $table = $table_name;
         }
-
+        
         // Now we get the models structs
         $modl = Modl::getInstance();
         $models = $modl->_models;
