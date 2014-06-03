@@ -87,12 +87,12 @@ class Modl {
     
     public function setConnectionArray($connection)
     {
-        $this->_dbtype      = $connection['dbType'];
-        $this->_username    = $connection['dbUsername'];
-        $this->_password    = $connection['dbPassword'];
-        $this->_host        = $connection['dbHost'];
-        $this->_port        = $connection['dbPort'];
-        $this->_database    = $connection['dbName'];  
+        $this->_dbtype      = $connection['type'];
+        $this->_username    = $connection['username'];
+        $this->_password    = $connection['password'];
+        $this->_host        = $connection['host'];
+        $this->_port        = $connection['port'];
+        $this->_database    = $connection['database'];  
     }
 
     public function setUser($user) {
