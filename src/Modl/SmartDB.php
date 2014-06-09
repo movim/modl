@@ -141,21 +141,27 @@ class SmartDB extends SQL {
 
                 if(isset($columns[$name])) {
                     list($type, $size) = $this->getType($value->type, $value->size);
-                    
+
                     switch($this->_dbtype) {
                         case 'mysql':
                             $dbtype = $columns[$name]->DATA_TYPE;
+                            $dbsize = $columns[$name]->CHARACTER_MAXIMUM_LENGTH;
                         break;
                         case 'pgsql':
                             $dbtype = preg_replace('/[0-9]/','', $columns[$name]->udt_name);
                         break;
-                    }   
+                    }
+
+                    $changesize = false;
+                    if($type == 'varchar' && $dbsize != $value->size) {
+                        $changesize = true;
+                    }
                     
-                    if($dbtype != $type) {
+                    if($dbtype != $type || $changesize) {
                         if($apply == true)
                             $this->updateColumn($model, $key, $value);
                         else
-                            array_push($infos, $name.' column have to be updated from '.$dbtype.' to '.$type);
+                            array_push($infos, $name.' column have to be updated from '.$dbtype.'('.$dbsize.') to '.$type.'('.$value->size.')');
                     }
                 }
 
