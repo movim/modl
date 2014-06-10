@@ -149,6 +149,7 @@ class SmartDB extends SQL {
                         break;
                         case 'pgsql':
                             $dbtype = preg_replace('/[0-9]/','', $columns[$name]->udt_name);
+                            $dbsize = $columns[$name]->character_maximum_length;
                         break;
                     }
 
@@ -281,7 +282,7 @@ class SmartDB extends SQL {
         if($type != false && $size != false) {
             $this->_sql = '
                 alter table '.$table_name.'
-                modify '.$column_name.' '.$type.$size.'
+                alter column '.$column_name.' type '.$type.$size.'
                 ';
             $this->prepare();
             $this->run();
