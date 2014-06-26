@@ -280,10 +280,21 @@ class SmartDB extends SQL {
         list($type, $size) = $this->getType($struct->type, $struct->size);
         
         if($type != false && $size != false) {
-            $this->_sql = '
-                alter table '.$table_name.'
-                alter column '.$column_name.' type '.$type.$size.'
-                ';
+            switch($this->_dbtype) {
+                case 'mysql':
+                    $this->_sql = '
+                        alter table '.$table_name.'
+                        modify '.$column_name.' '.$type.$size.'
+                        ';
+                break;
+                case 'pgsql':
+                    $this->_sql = '
+                        alter table '.$table_name.'
+                        alter column '.$column_name.' type '.$type.$size.'
+                        ';
+                break;
+            }
+            
             $this->prepare();
             $this->run();
         }
