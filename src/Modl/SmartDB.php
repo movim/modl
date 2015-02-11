@@ -110,6 +110,9 @@ class SmartDB extends SQL {
             
             $table = $table_name;
         }
+
+        // We create a copy to detect some extra columns in the database
+        $extra_columns = $columns;
         
         // Now we get the models structs
         $modl = Modl::getInstance();
@@ -117,6 +120,10 @@ class SmartDB extends SQL {
         
         foreach($models as $model) {
             $model = strtolower($model);
+
+            // We remove the default modl column
+            unset($extra_columns[$model.'_modl']);
+
             $classname = 'modl\\'.$model;
 
             $keys = array();
@@ -174,11 +181,22 @@ class SmartDB extends SQL {
                             array_push($infos, $name.' key have to be created');
                     }
                 }
+
+                unset($extra_columns[$name]);
             }
             
             if(!empty($keys)) {
                 $this->createKeys($model, $keys);
             }
+        }
+
+        // And we remove the extra columns
+        foreach($extra_columns as $key => $value) {
+            if($apply == true) {
+                list($table, $column) = explode('_', $key);
+                $this->deleteColumn($table, $column);
+            } else
+                array_push($infos, $key.' column have to be removed');
         }
 
         if(!empty($infos))
@@ -299,6 +317,20 @@ class SmartDB extends SQL {
             $this->run();
         }
     }
+
+    private function deleteColumn($table_name, $column_name) {
+        $table_name  = strtolower($table_name);
+        $column_name = strtolower($column_name);
+        
+        Utils::log('Delete column '.$column_name);
+        
+        $this->_sql = '
+            alter table '.$table_name.'
+            drop column '.$column_name.'
+            ';
+        $this->prepare();
+        $this->run();
+    }
     
     private function createKeys($table_name, $keys) {
         $pk = '';
@@ -310,6 +342,13 @@ class SmartDB extends SQL {
         $pk = substr_replace($pk, '', -1);
         
         Utils::log('Creating the keys '.$pk.' for '.$table_name);
+
+        // Do we really need to do this ?
+        $this->_sql = '
+            truncate table '.$table_name;
+
+        $this->prepare();
+        $this->run();
             
         switch($this->_dbtype) {
             case 'mysql':

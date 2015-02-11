@@ -96,7 +96,9 @@ class Modl {
     }
 
     public function setUser($user) {
-        $this->_user = $user;
+        if($user != '') {
+            $this->_user = $user;
+        }
     }
     
     public function addModel($name) {
