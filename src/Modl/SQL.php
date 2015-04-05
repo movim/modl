@@ -132,7 +132,7 @@ class SQL extends Modl {
                     foreach($row as $key => $value) {
                         if(isset($value)) {
                             if(is_array($value)) {
-                                $value = $value[0];
+                                $value = current(array_filter($value));
                             }
                             
                             if(property_exists($obj, $key))
