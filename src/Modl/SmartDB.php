@@ -127,6 +127,7 @@ class SmartDB extends SQL {
             $classname = 'modl\\'.$model;
 
             $keys = array();
+            $need_recreate_keys = false;
 
             $m = new $classname;
 
@@ -174,18 +175,26 @@ class SmartDB extends SQL {
                 }
 
                 if(isset($value->key) && $value->key) {
+                    // We push all the keys
+                    array_push($keys, $key);
+
+                    // If one of them is not in the database
                     if($prim_keys[$name] != true) {
-                        if($apply == true)
-                            array_push($keys, $key);
-                        else
+                        // If we apply the changes we recreate all the keys
+                        if($apply == true) {
+                            $need_recreate_keys = true;
+                        } else {
                             array_push($infos, $name.' key have to be created');
+                        }
                     }
+
+                    $need_recreate_keys = true;
                 }
 
                 unset($extra_columns[$name]);
             }
             
-            if(!empty($keys)) {
+            if(!empty($keys) && $need_recreate_keys) {
                 $this->createKeys($model, $keys);
             }
         }
