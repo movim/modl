@@ -187,8 +187,6 @@ class SmartDB extends SQL {
                             array_push($infos, $name.' key have to be created');
                         }
                     }
-
-                    $need_recreate_keys = true;
                 }
 
                 unset($extra_columns[$name]);
