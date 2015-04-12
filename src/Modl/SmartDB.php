@@ -184,7 +184,7 @@ class SmartDB extends SQL {
                         if($apply == true) {
                             $need_recreate_keys = true;
                         } else {
-                            array_push($infos, $name.' key have to be created');
+                            array_push($infos, $name.' key have to be created, /!\ the table will be truncated');
                         }
                     }
                 }
