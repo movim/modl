@@ -148,6 +148,8 @@ class SmartDB extends SQL {
                 }
 
                 if(isset($columns[$name])) {
+                    if(!isset($value->size)) $value->size = false;
+
                     list($type, $size) = $this->getType($value->type, $value->size);
 
                     switch($this->_dbtype) {
