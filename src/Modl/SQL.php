@@ -66,8 +66,10 @@ class SQL extends Modl {
                                 
                                 if(isset($caract->mandatory) 
                                 && $caract->mandatory == true 
-                                && !isset($value))
+                                && !isset($value) && !empty($value)) {
                                     array_push($this->_warnings, $key.' is not set');
+                                    return;
+                                }
 
                                 switch($caract->type) {
                                     case 'string' :
