@@ -58,11 +58,11 @@ class Model extends Modl implements \JsonSerializable {
                     &&  $date->format('Y-m-d H:i:s') != $now->format('Y-m-d H:i:s')
                     )
                         $this->$name = $date->format('Y-m-d H:i:s');
-                    break;
+                break;
                 case 'text' :
                 case 'string' :
                 default :
-                    $this->$name = (string)htmlentities($value, ENT_XML1, 'UTF-8');
+                    $this->$name = (string)htmlentities($value, ENT_XML1, 'UTF-8', false);
                 break;
             }
         } elseif(property_exists($this, $name))
