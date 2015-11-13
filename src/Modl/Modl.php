@@ -133,7 +133,7 @@ class Modl {
         }
     }
     
-    protected function inject($instance) {
+    protected function inject() {
         foreach(get_object_vars(self::$_instance) as $key => $value) {
             if(property_exists($this, $key))
                 $this->$key = $value;

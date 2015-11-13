@@ -32,7 +32,7 @@ class SQL extends Modl {
     protected $_effective;
     
     function __construct() {
-        parent::inject($this);
+        parent::inject();
     }
 
     protected function transaction() {
