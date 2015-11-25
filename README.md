@@ -2,7 +2,7 @@
 
 Modl stands for Movim Data Layer. It is the library which links the core code of Movim to the SQL database.
 
-Modl is licended under the AGPLv3 licence.
+Modl is licensed under the AGPLv3 licence.
 
 ## Features
 
