@@ -30,7 +30,7 @@ class SQL extends Modl {
     private $_params;
     private $_warnings = array();
     protected $_effective;
-    
+
     function __construct() {
         parent::inject();
     }
@@ -42,30 +42,30 @@ class SQL extends Modl {
     protected function commit() {
         $this->_db->commit();
     }
-    
+
     public function prepare($classname = null, $params = false) {
         if($this->_connected) {
             $this->_resultset = $this->_db->prepare($this->_sql);
-            
+
             if(isset($classname) && class_exists('modl\\'.$classname)) {
                 $classname = 'modl\\'.$classname;
                 $class = new $classname;
-                
+
                 if(isset($params)&& is_array($params)) {
                     $this->_params = $params;
-                    
+
                     $struct = $class->_struct;
 
                     if(isset($struct))
                         foreach($params as $key => $value) {
                             $a = explode('_', $key);
                             $ckey = reset($a);
-                            
-                            if(isset($struct->$ckey)) {                           
+
+                            if(isset($struct->$ckey)) {
                                 $caract = $struct->$ckey;
-                                
-                                if(isset($caract->mandatory) 
-                                && $caract->mandatory == true 
+
+                                if(isset($caract->mandatory)
+                                && $caract->mandatory == true
                                 && !isset($value) && !empty($value)) {
                                     array_push($this->_warnings, $key.' is not set');
                                     return;
@@ -73,19 +73,19 @@ class SQL extends Modl {
 
                                 switch($caract->type) {
                                     case 'string' :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);    
+                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
                                     break;
                                     case 'date' :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);      
+                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
                                     break;
                                     case 'int' :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_INT);    
+                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_INT);
                                     break;
                                     case 'bool' :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_BOOL);    
+                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_BOOL);
                                     break;
                                     default :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);  
+                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
                                     break;
                                 }
                             } else {
@@ -99,7 +99,7 @@ class SQL extends Modl {
             array_push($this->_warnings, 'Database not ready');
         }
     }
-    
+
     public function run($classname = null, $type = 'list') {
         if(empty($this->_warnings))
             $this->_resultset->execute();
@@ -117,17 +117,17 @@ class SQL extends Modl {
                 Utils::log($errors[1]);
                 Utils::log($errors[2]);
             }
-            
+
             if($this->_resultset->rowCount() == 0)
                 $this->_effective = false;
             else
                 $this->_effective = true;
-                        
+
             $ns_classname = 'modl\\'.$classname;
-                        
-            if(isset($classname) && class_exists($ns_classname) && $this->_resultset != null) {            
+
+            if(isset($classname) && class_exists($ns_classname) && $this->_resultset != null) {
                 $results = array();
-                
+
                 while($row = $this->_resultset->fetch(\PDO::FETCH_NAMED)) {
 
                     $obj = new $ns_classname;
@@ -136,15 +136,15 @@ class SQL extends Modl {
                             if(is_array($value)) {
                                 $value = current(array_filter($value));
                             }
-                            
+
                             if(property_exists($obj, $key))
                                 $obj->$key = $value;
                         }
                     }
-                    
+
                     array_push($results, $obj);
                 }
-                
+
                 $i = 0;
                 $empty = new $ns_classname;
                 foreach($results as $obj) {
@@ -152,13 +152,13 @@ class SQL extends Modl {
                         unset($results[$i]);
                     $i++;
                 }
-                
+
                 if(empty($results))
                     return null;
                 else {
                     foreach($results as $obj)
                         $obj->clean();
-                    if($type == 'list')    
+                    if($type == 'list')
                         return $results;
                     elseif($type == 'item')
                         return $results[0];
@@ -166,7 +166,7 @@ class SQL extends Modl {
             } elseif($type = 'array' && $this->_resultset != null) {
                 $results = $this->_resultset->fetchAll(\PDO::FETCH_ASSOC);
                 return $results;
-            } else 
+            } else
                 return null;
         } else
             return null;
