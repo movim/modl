@@ -159,7 +159,10 @@ class SQL extends Modl {
 
             $ns_classname = 'modl\\'.$classname;
 
-            if(isset($classname) && class_exists($ns_classname) && $this->_resultset != null) {
+            if(isset($classname)
+            && class_exists($ns_classname)
+            && $this->_resultset != null
+            && $type != 'array') {
                 $results = array();
 
                 while($row = $this->_resultset->fetch(\PDO::FETCH_NAMED)) {
