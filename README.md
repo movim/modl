@@ -14,7 +14,7 @@ Modl currently supports MySQL and PostGreSQL databases.
 
 ## Integration into your project
 
-This library is [PSR-0](http://www.php-fig.org/psr/psr-0/) and [PSR-4](http://www.php-fig.org/psr/psr-4/) compliant and can thus be easily loaded via the autoloader. 
+This library is [PSR-0](http://www.php-fig.org/psr/psr-0/) and [PSR-4](http://www.php-fig.org/psr/psr-4/) compliant and can thus be easily loaded via the autoloader.
 You have two ways to do this: through Composer and using the internal loader.
 
 ### Through Composer
@@ -44,16 +44,16 @@ require 'modl/src/Modl/Loader.php';
 
 Once the library loaded in your project you can instantiate it wherever you want.
 
-The code below comes from the [bootstrap.php](https://github.com/edhelas/movim/blob/master/bootstrap.php) file of the Movim project.
+The code below comes from the [bootstrap.php](https://github.com/movim/movim/blob/master/bootstrap.php) file of the Movim project.
 
 ```php
 $db = Modl\Modl::getInstance();
 $db->setModelsPath(APP_PATH.'models');
-        
+
 Modl\Utils::loadModel('Presence');
 Modl\Utils::loadModel('Contact');
 …
-        
+
 $db->setConnectionArray(Conf::getServerConf());
 $db->connect();
 ```
@@ -75,7 +75,7 @@ $conf = array(
 
 ## How to code a Model
 
-Let's take a the simple example of the creation of an "Item" model (which an existing model in Movim, that can be found [here](https://github.com/edhelas/movim/tree/master/app/models/item)).
+Let's take a the simple example of the creation of an "Item" model (which an existing model in Movim, that can be found [here](https://github.com/movim/movim/tree/master/app/models/item)).
 
 In order to do that you will have to create a new directory in the models directory (defined before loading the library). Then, create two files in this new directory.
 
@@ -93,22 +93,22 @@ class Item extends Model {
     public $name;
     public $node;
     public $updated;
-    
+
     public function __construct() {
         $this->_struct = '
         {
-            "server" : 
-                {"type":"string", "size":128, "mandatory":true, "key":true },
-            "jid" : 
-                {"type":"string", "size":128, "mandatory":true, "key":true },
-            "node" : 
-                {"type":"string", "size":128, "mandatory":true, "key":true },
-            "name" : 
+            "server" :
+                {"type":"string", "size":128, "key":true },
+            "jid" :
+                {"type":"string", "size":64, "key":true },
+            "node" :
+                {"type":"string", "size":128, "key":true },
+            "name" :
                 {"type":"string", "size":128 },
-            "updated" : 
-                {"type":"date"}
+            "updated" :
+                {"type":"date", "mandatory":true}
         }';
-        
+
         parent::__construct();
     }
 }
@@ -123,8 +123,9 @@ Modl currently supports four types of data:
   * **date** for the dates obviously
   * **int** to use intergers
   * **text** to stock a long string or a big binary value
+  * **bool** to use a boolean value
 
-Except for the date type, a size can be specified for each type of data using the "size" keyword. Globally, the "mandatory" and "key" keywords are respectively used to (1) forbid any empty value in the attribute to save and (2) specify the attribute as a key of the table.
+Except for the date type and the bool type, a size can be specified for each type of data using the "size" keyword. Globally, the "mandatory" and "key" keywords are respectively used to (1) forbid any empty value in the attribute to save and (2) specify the attribute as a key of the table. If an attribute is defined as a key, the "mandatory" keyword is useless.
 
 Don't forget to add the following line to apply your modifications.
 
@@ -139,7 +140,7 @@ ItemDAO inherits of the `Modl\SQL` class. The following code lets you insert an 
 ```php
 namespace Modl;
 
-class ItemDAO extends SQL { 
+class ItemDAO extends SQL {
     function set(Item $item) {
         $this->_sql = '
             update item
@@ -148,9 +149,9 @@ class ItemDAO extends SQL {
             where server = :server
                 and jid  = :jid
                 and node = :node';
-        
+
         $this->prepare(
-            'Item', 
+            'Item',
             array(
                 'name'   => $item->name,
                 'updated'=> $item->updated,
@@ -159,9 +160,9 @@ class ItemDAO extends SQL {
                 'node'   => $item->node
             )
         );
-        
+
         $this->run('Item');
-        
+
         if(!$this->_effective) {
             $this->_sql = '
                 insert into item
@@ -178,9 +179,9 @@ class ItemDAO extends SQL {
                     :name,
                     :updated
                     )';
-            
+
             $this->prepare(
-                'Item', 
+                'Item',
                 array(
                     'name'   => $item->name,
                     'updated'=> $item->updated,
@@ -189,7 +190,7 @@ class ItemDAO extends SQL {
                     'node'   => $item->node
                 )
             );
-            
+
             $this->run('Item');
         }
     }
@@ -204,10 +205,12 @@ You are advised to start development for PostGreSQL before testing on MySQL.
 
 The SQL request is defined by `_sql`. The `prepare()` method will change the values associated to the keys used in the request (always preceded by `:`) and check and convert the elements to the JSON structure defined in the model constructor.
 
-The `effective()` method returns a boolean related to the validity of the request. In our example it lets us do an "insert or update" (attempts to update a tuple in the table and inserts it if it doesn't already exist) request.
+If you want to affect a value from another model in the request, prepend the parameter key with the model name.
+
+The `effective()` method returns a boolean related to the validity of the request. In our example it lets us do an "insert or update" (attempts to update a tuple in the table and inserts it if it doesn't already exists) request.
 
 #### Execution
-The execution of the request is done through the `run()` method. You will have to give it the type of the instance to manipulate as a parameter (it's null by default). If you only give one parameter to this method it will return an array even for one tuple.
+The execution of the request is done through the `run()` method. You will have to give it the type of the instance to manipulate as a parameter (if nothing is precised Modl use the default object linked to our DAO). If you only give one parameter to this method it will return an array even for one tuple.
 
 To get only one instance, you can put `item` as a second parameter.
 
@@ -220,11 +223,11 @@ Following up with the example above, Modl will try to change each element of the
 You can also return the raw array using the following.
 
 ```php
-return $this->run(null, 'array'); 
+return $this->run(null, 'array');
 ```
 
 ### Call to the model
-Once Modl has been loaded, the defined models can be called wherever you want in the code. Model is a [Singleton](https://fr.wikipedia.org/wiki/Singleton_%28patron_de_conception%29), that is why the connection with the database is kept during the whole execution.
+Once Modl has been loaded, the defined models can be called wherever you want in the code. Model is a [Singleton](https://en.wikipedia.org/wiki/Singleton_pattern), that is why the connection with the database is kept during the whole execution.
 
 In the piece of code below, a new instance of Item is created...
 
@@ -245,17 +248,17 @@ $nd->set($n);
 ## SmartDB
 Modl SmartDB is a newly added feature in Modl. It replaces the old table creation system which used to use the `create()` method in each DAO.
 
-SmartDB enables not only to create tables automagically by defining models but also to update them if you need to modify or add attributes or models.
+SmartDB allows not only to create tables automagically by defining models but also to update them if you need to modify or add attributes or models.
 
 It's quite easy to understand how it works. When Modl and its models are loaded the `check()` method launches SmartDB.
 
 ```php
 $md = Modl\Modl::getInstance();
-$infos = $md->check();  
+$infos = $md->check();
 ```
 
 It returns a list of modifications to make in the database.
-By giving the **true** parameter to the `check()` method you authorize it to update the database by itself. 
+By giving the **true** parameter to the `check()` method you authorize it to update the database by itself.
 
 ```php
 $md->check(true); // Done ! Your database is up to date.

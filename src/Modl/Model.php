@@ -55,7 +55,7 @@ class Model extends Modl implements \JsonSerializable {
 
                     if(
                         $date->format('Y-m-d H:i:s') != '0000-00-00 00:00:00'
-                    &&  $date->format('Y-m-d H:i:s') != $now->format('Y-m-d H:i:s')
+                    //&&  $date->format('Y-m-d H:i:s') != $now->format('Y-m-d H:i:s')
                     )
                         $this->$name = $date->format('Y-m-d H:i:s');
                 break;

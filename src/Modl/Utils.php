@@ -9,7 +9,8 @@ use Monolog\Formatter\NormalizerFormatter;
 
 class Utils {
 
-    static function getDBList() {
+    static function getDBList()
+    {
         $dblist = array(
             'mysql' => 'MySQL',
             'pgsql' => 'PostgreSQL'
@@ -17,11 +18,12 @@ class Utils {
         return $dblist;
     }
 
-    static function loadModel($name) {
+    static function loadModel($name)
+    {
         try {
             $db = Modl::getInstance();
             $base = $db->modelspath.'/';
-            
+
             $datafolder = $base.strtolower($name).'/';
             require_once($datafolder.$name.'.php');
             require_once($datafolder.$name.'DAO.php');
@@ -32,7 +34,7 @@ class Utils {
         }
     }
 
-    public static function log($message, $arr = false, $arr2 = false) 
+    public static function log($message, $arr = false, $arr2 = false)
     {
         if(LOG_LEVEL != null && LOG_LEVEL > 0) {
             $log = new Logger('modl');
@@ -40,7 +42,7 @@ class Utils {
 
             if(LOG_LEVEL > 1)
                 $log->pushHandler(new StreamHandler(LOG_PATH.'/sql.log', Logger::DEBUG));
-                
+
             if(is_array($arr) && is_array($arr2))
                 $log->addInfo($message, $arr, $arr2);
             elseif(is_array($arr))

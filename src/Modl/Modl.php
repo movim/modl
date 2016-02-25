@@ -26,38 +26,38 @@ namespace Modl;
 
 class Modl {
     protected $_db;
-    
+
     protected $_dbtype;
-    
+
     protected $_username;
     protected $_password;
     protected $_host;
     protected $_port;
     protected $_database;
-    
+
     public $_error;
-    
+
     // Boolean to know if we are currently connected
     public $_connected;
-    
+
     // List of Models loaded
     protected $_models = array();
     public $modelspath;
-    
+
     // Keep prepared request to handle transactions
     protected $_keep = array();
 
     protected $_user;
-    
+
     protected static $_instance;
-    
+
     public static function getInstance() {
         if (!self::$_instance) {
             self::$_instance = new Modl();
         }
 
         return self::$_instance;
-    } 
+    }
 
     function __construct() {
         if(self::$_instance) {
@@ -74,7 +74,7 @@ class Modl {
             $this->_error       = $inst->_error;
         }
     }
-    
+
     public function setConnection($connstring) {
         $connection = $this->parseConnectionString($connstring);
         $this->_dbtype      = $connection['dbtype'];
@@ -82,9 +82,9 @@ class Modl {
         $this->_password    = $connection['password'];
         $this->_host        = $connection['host'];
         $this->_port        = $connection['port'];
-        $this->_database    = $connection['database'];        
+        $this->_database    = $connection['database'];
     }
-    
+
     public function setConnectionArray($connection)
     {
         $this->_dbtype      = $connection['type'];
@@ -92,7 +92,7 @@ class Modl {
         $this->_password    = $connection['password'];
         $this->_host        = $connection['host'];
         $this->_port        = $connection['port'];
-        $this->_database    = $connection['database'];  
+        $this->_database    = $connection['database'];
     }
 
     public function setUser($user) {
@@ -100,31 +100,32 @@ class Modl {
             $this->_user = $user;
         }
     }
-    
+
     public function addModel($name) {
         array_push($this->_models, $name);
     }
-    
+
     public function setModelsPath($path) {
         $this->modelspath = $path;
     }
-    
+
     public function check($apply = false) {
         $msdb = new SmartDB();
         return $msdb->check($apply);
     }
-    
+
     public function connect() {
         try {
             $this->_db = new \PDO(
-                $this->_dbtype.':host='.$this->_host.';dbname='.$this->_database.';port='.$this->_port, 
-                $this->_username, 
-                $this->_password, 
+                $this->_dbtype.':host='.$this->_host.';dbname='.$this->_database.';port='.$this->_port,
+                $this->_username,
+                $this->_password,
                 array(
-                    \PDO::ATTR_PERSISTENT => true
+                    \PDO::ATTR_PERSISTENT => true,
+                    \PDO::ATTR_EMULATE_PREPARES => false
                 )
             );
-            
+
             $this->_connected = true;
         } catch (PDOException $e) {
             $this->_connected = false;
@@ -132,18 +133,18 @@ class Modl {
             die();
         }
     }
-    
+
     protected function inject() {
         foreach(get_object_vars(self::$_instance) as $key => $value) {
             if(property_exists($this, $key))
                 $this->$key = $value;
         }
     }
-    
+
     public function getSupportedDatabases() {
         return Utils::getDBList();
     }
-    
+
     /**
      * Parses a connection string
      */

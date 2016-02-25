@@ -31,11 +31,13 @@ class SQL extends Modl {
     private $_warnings = array();
     protected $_effective;
 
-    function __construct() {
+    function __construct()
+    {
         parent::inject();
     }
 
-    protected function transaction() {
+    protected function transaction()
+    {
         $this->_db->beginTransaction();
     }
 
@@ -43,56 +45,81 @@ class SQL extends Modl {
         $this->_db->commit();
     }
 
-    public function prepare($classname = null, $params = false) {
+    public function prepare($mainclassname = null, $params = false)
+    {
         if($this->_connected) {
             $this->_resultset = $this->_db->prepare($this->_sql);
 
-            if(isset($classname) && class_exists('modl\\'.$classname)) {
-                $classname = 'modl\\'.$classname;
-                $class = new $classname;
+            if(!$params) return;
 
-                if(isset($params)&& is_array($params)) {
-                    $this->_params = $params;
+            // No mainclassname defined, try the default one
+            if($mainclassname == null) {
+                if(substr(get_class($this), -3, 3) == 'DAO') {
+                    // We strip Modl/ and DAO from the classname
+                    $mainclassname = substr(get_class($this), 0, -3);
+                } else {
+                    array_push($this->_warnings, 'A model needs to be set');
+                    return;
+                }
+            } else {
+                $mainclassname = 'modl\\'.$mainclassname;
+            }
 
+            if(class_exists($mainclassname)) {
+                $class = new $mainclassname;
+                $mainstruct = $class->_struct;
+            } else {
+                array_push($this->_warnings, 'The defined model '.$mainclassname.' doesn\'t exists');
+                return;
+            }
+
+            foreach($params as $key => $value) {
+                $a = explode('_', $key);
+                $ckey = reset($a);
+
+                $a = explode('.', $key);
+
+                // We have an attribute from another model
+                if(count($a) > 1
+                && class_exists('modl\\'.$a[0])) {
+                    $subclassname = 'modl\\'.$a[0];
+                    $class = new $subclassname;
+
+                    $classname = $subclassname;
                     $struct = $class->_struct;
 
-                    if(isset($struct))
-                        foreach($params as $key => $value) {
-                            $a = explode('_', $key);
-                            $ckey = reset($a);
+                    $key = $a[1];
+                } else {
+                    $classname = $mainclassname;
+                    $struct = $mainstruct;
+                }
 
-                            if(isset($struct->$ckey)) {
-                                $caract = $struct->$ckey;
+                if(isset($struct->$ckey)) {
+                    $caract = $struct->$ckey;
 
-                                if(isset($caract->mandatory)
-                                && $caract->mandatory == true
-                                && !isset($value) && !empty($value)) {
-                                    array_push($this->_warnings, $key.' is not set');
-                                    return;
-                                }
-
-                                switch($caract->type) {
-                                    case 'string' :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
-                                    break;
-                                    case 'date' :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
-                                    break;
-                                    case 'int' :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_INT);
-                                    break;
-                                    case 'bool' :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_BOOL);
-                                    break;
-                                    default :
-                                        $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
-                                    break;
-                                }
-                            } else {
-                                // Call the logger here
-                                array_push($this->_warnings, $classname.' attribute '.$key.' not found');
-                            }
-                        }
+                    if(isset($caract->mandatory)
+                    && $caract->mandatory == true
+                    && !isset($value) && !empty($value)) {
+                        array_push($this->_warnings, $key.' is not set');
+                        return;
+                    }
+                    switch($caract->type) {
+                        case 'int' :
+                            $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_INT);
+                        break;
+                        // Seems buggy on MySQL
+                        /*case 'bool' :
+                            $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_BOOL);
+                        break;*/
+                        case 'date' :
+                        case 'string' :
+                        default :
+                            $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
+                        break;
+                    }
+                } else {
+                    // Call the logger here
+                    array_push($this->_warnings, $classname.' attribute '.$key.' not found');
                 }
             }
         } else {
@@ -100,11 +127,18 @@ class SQL extends Modl {
         }
     }
 
-    public function run($classname = null, $type = 'list') {
+    public function run($classname = null, $type = 'list')
+    {
         if(empty($this->_warnings))
             $this->_resultset->execute();
         else {
             Utils::log($this->_warnings);
+        }
+
+        if($classname == null
+        && substr(get_class($this), -3, 3) == 'DAO') {
+            // We strip Modl/ and DAO from the classname
+            $classname = substr(get_class($this), 5, -3);
         }
 
         $this->_warnings = array();
@@ -137,8 +171,25 @@ class SQL extends Modl {
                                 $value = current(array_filter($value));
                             }
 
-                            if(property_exists($obj, $key))
-                                $obj->$key = $value;
+                            if(property_exists($obj, $key)) {
+                                if(isset($obj->_struct->$key)) {
+                                    switch($obj->_struct->$key->type) {
+                                        case 'int' :
+                                            $obj->$key = (int)$value;
+                                        break;
+                                        case 'bool' :
+                                            $obj->$key = (bool)$value;
+                                        break;
+                                        case 'date' :
+                                        case 'string' :
+                                        default :
+                                            $obj->$key = (string)$value;
+                                        break;
+                                    }
+                                } else {
+                                    $obj->$key = $value;
+                                }
+                            }
                         }
                     }
 

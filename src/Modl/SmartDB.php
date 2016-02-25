@@ -25,17 +25,29 @@
 namespace Modl;
 
 class SmartDB extends SQL {
-    function __construct() {
+
+    function __construct()
+    {
         parent::inject($this);
     }
 
-    private function getType($ctype, $csize = false) {
+    private function getType($ctype, $csize = false)
+    {
         $type = $size = false;
 
         switch($ctype) {
             case 'int':
                 $type = 'int';
                 $size = '  ';
+            break;
+            case 'bool':
+                if($this->_dbtype == 'mysql') {
+                    $type = 'tinyint';
+                    $size = '(1)';
+                } else {
+                    $type = 'bool';
+                    $size = '  ';
+                }
             break;
             case 'text':
                 if($this->_dbtype == 'mysql')
@@ -61,7 +73,8 @@ class SmartDB extends SQL {
         return array($type, $size);
     }
 
-    public function check($apply = false) {
+    public function check($apply = false)
+    {
         $infos = array();
 
         switch($this->_dbtype) {
@@ -119,7 +132,8 @@ class SmartDB extends SQL {
         $modl = Modl::getInstance();
         $models = $modl->_models;
 
-        foreach($models as $model) {
+        foreach($models as $model)
+        {
             $model = strtolower($model);
 
             // We remove the default modl column
@@ -227,7 +241,8 @@ class SmartDB extends SQL {
             return null;
     }
 
-    private function getKeys() {
+    private function getKeys()
+    {
         switch($this->_dbtype) {
             case 'mysql':
                 $where = ' table_schema = :database';
@@ -265,7 +280,8 @@ class SmartDB extends SQL {
         return $arr;
     }
 
-    private function createTable($name) {
+    private function createTable($name)
+    {
         Utils::log('Creating table '.$name);
         $name = strtolower($name);
 
@@ -289,7 +305,8 @@ class SmartDB extends SQL {
 
     }
 
-    private function createColumn($table_name, $column_name, $struct) {
+    private function createColumn($table_name, $column_name, $struct)
+    {
         $table_name  = strtolower($table_name);
         $column_name = strtolower($column_name);
 
@@ -312,7 +329,8 @@ class SmartDB extends SQL {
         }
     }
 
-    private function updateColumn($table_name, $column_name, $struct) {
+    private function updateColumn($table_name, $column_name, $struct)
+    {
         $table_name  = strtolower($table_name);
         $column_name = strtolower($column_name);
 
@@ -369,7 +387,8 @@ class SmartDB extends SQL {
         }
     }
 
-    private function deleteColumn($table_name, $column_name) {
+    private function deleteColumn($table_name, $column_name)
+    {
         $table_name  = strtolower($table_name);
         $column_name = strtolower($column_name);
 
@@ -383,7 +402,8 @@ class SmartDB extends SQL {
         $this->run();
     }
 
-    private function createKeys($table_name, $keys) {
+    private function createKeys($table_name, $keys)
+    {
         $pk = '';
 
         foreach($keys as $k) {
