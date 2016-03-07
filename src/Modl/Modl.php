@@ -122,7 +122,7 @@ class Modl {
                 $this->_password,
                 array(
                     \PDO::ATTR_PERSISTENT => true,
-                    \PDO::ATTR_EMULATE_PREPARES => false
+                    //\PDO::ATTR_EMULATE_PREPARES => false
                 )
             );
 
