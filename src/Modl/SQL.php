@@ -88,7 +88,7 @@ class SQL extends Modl {
                     $classname = $subclassname;
                     $struct = $class->_struct;
 
-                    $key = $a[1];
+                    $ckey = $key = $a[1];
                 } else {
                     $classname = $mainclassname;
                     $struct = $mainstruct;
