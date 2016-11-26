@@ -24,7 +24,8 @@
 
 namespace Modl;
 
-class Modl {
+class Modl
+{
     protected $_db;
 
     protected $_dbtype;
@@ -41,17 +42,18 @@ class Modl {
     public $_connected;
 
     // List of Models loaded
-    protected $_models = array();
+    protected $_models = [];
     public $modelspath;
 
     // Keep prepared request to handle transactions
-    protected $_keep = array();
+    protected $_keep = [];
 
     protected $_user;
 
     protected static $_instance;
 
-    public static function getInstance() {
+    public static function getInstance()
+    {
         if (!self::$_instance) {
             self::$_instance = new Modl();
         }
@@ -59,7 +61,8 @@ class Modl {
         return self::$_instance;
     }
 
-    function __construct() {
+    function __construct()
+    {
         if(self::$_instance) {
             $inst = self::$_instance;
             $this->_db          = $inst->_db;
@@ -75,7 +78,8 @@ class Modl {
         }
     }
 
-    public function setConnection($connstring) {
+    public function setConnection($connstring)
+    {
         $connection = $this->parseConnectionString($connstring);
         $this->_dbtype      = $connection['dbtype'];
         $this->_username    = $connection['username'];
@@ -95,35 +99,41 @@ class Modl {
         $this->_database    = $connection['database'];
     }
 
-    public function setUser($user) {
+    public function setUser($user)
+    {
         if($user != '') {
             $this->_user = $user;
         }
     }
 
-    public function addModel($name) {
+    public function addModel($name)
+    {
         array_push($this->_models, $name);
     }
 
-    public function setModelsPath($path) {
+    public function setModelsPath($path)
+    {
         $this->modelspath = $path;
     }
 
-    public function check($apply = false) {
+    public function check($apply = false)
+    {
         $msdb = new SmartDB();
         return $msdb->check($apply);
     }
 
-    public function connect() {
+    public function connect()
+    {
         try {
             $this->_db = new \PDO(
                 $this->_dbtype.':host='.$this->_host.';dbname='.$this->_database.';port='.$this->_port,
                 $this->_username,
                 $this->_password,
-                array(
+                [
                     \PDO::ATTR_PERSISTENT => true,
+                    \PDO::MYSQL_ATTR_FOUND_ROWS => true,
                     //\PDO::ATTR_EMULATE_PREPARES => false
-                )
+                ]
             );
 
             $this->_connected = true;
@@ -134,14 +144,16 @@ class Modl {
         }
     }
 
-    protected function inject() {
+    protected function inject()
+    {
         foreach(get_object_vars(self::$_instance) as $key => $value) {
             if(property_exists($this, $key))
                 $this->$key = $value;
         }
     }
 
-    public function getSupportedDatabases() {
+    public function getSupportedDatabases()
+    {
         return Utils::getDBList();
     }
 
@@ -151,14 +163,16 @@ class Modl {
     protected function parseConnectionString($string)
     {
         // preg_match('%^([^/]+?)://(?:([^/@:]*?)(?::([^/@:]+?))?@([^/@:]+?)(?::([^/@:]+?))?)?/(.+)$%'
-        $matches = array();
+        $matches = [];
         preg_match('%^([^/]+?)://(?:([^/@]*?)(?::([^/@:]+?)@)?([^/@:]+?)(?::([^/@:]+?))?)?/(.+)$%',
                    $string, $matches);
-        return array('dbtype'   => $matches[1],
-                     'username' => $matches[2],
-                     'password' => $matches[3],
-                     'host'     => $matches[4],
-                     'port'     => $matches[5],
-                     'database' => $matches[6]);
+        return [
+            'dbtype'   => $matches[1],
+            'username' => $matches[2],
+            'password' => $matches[3],
+            'host'     => $matches[4],
+            'port'     => $matches[5],
+            'database' => $matches[6]
+        ];
     }
 }

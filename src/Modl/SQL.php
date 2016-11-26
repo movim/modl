@@ -28,7 +28,7 @@ class SQL extends Modl {
     protected $_sql = '';
     private $_resultset;
     private $_params;
-    private $_warnings = array();
+    private $_warnings = [];
     protected $_effective;
 
     function __construct()
@@ -52,6 +52,8 @@ class SQL extends Modl {
 
             if(!$params) return;
 
+            $this->_params = $params;
+
             // No mainclassname defined, try the default one
             if($mainclassname == null) {
                 if(substr(get_class($this), -3, 3) == 'DAO') {
@@ -73,7 +75,7 @@ class SQL extends Modl {
                 return;
             }
 
-            foreach($params as $key => $value) {
+            foreach($this->_params as $key => $value) {
                 $a = explode('_', $key);
                 $ckey = reset($a);
 
@@ -81,8 +83,8 @@ class SQL extends Modl {
 
                 // We have an attribute from another model
                 if(count($a) > 1
-                && class_exists('modl\\'.$a[0])) {
-                    $subclassname = 'modl\\'.$a[0];
+                && class_exists('Modl\\'.$a[0])) {
+                    $subclassname = 'Modl\\'.$a[0];
                     $class = new $subclassname;
 
                     $classname = $subclassname;
@@ -97,8 +99,10 @@ class SQL extends Modl {
                 if(isset($struct->$ckey)) {
                     $caract = $struct->$ckey;
 
-                    if(isset($caract->mandatory)
-                    && $caract->mandatory == true
+                    if(
+                    ((isset($caract->key) && $caract->key == true)
+                        ||
+                    (isset($caract->mandatory) && $caract->mandatory == true))
                     && !isset($value) && !empty($value)) {
                         array_push($this->_warnings, $key.' is not set');
                         return;
@@ -129,9 +133,9 @@ class SQL extends Modl {
 
     public function run($classname = null, $type = 'list')
     {
-        if(empty($this->_warnings))
+        if(empty($this->_warnings)) {
             $this->_resultset->execute();
-        else {
+        } else {
             Utils::log($this->_warnings);
         }
 
@@ -141,29 +145,28 @@ class SQL extends Modl {
             $classname = substr(get_class($this), 5, -3);
         }
 
-        $this->_warnings = array();
+        $this->_warnings = [];
 
         if($this->_resultset != null) {
             $errors = $this->_resultset->errorInfo();
             if($errors[0] != '000000') {
-                Utils::log(trim($this->_sql), $this->_params, $errors);
-
-                Utils::log($errors[1]);
-                Utils::log($errors[2]);
+                Utils::log($errors[1].' : '.$errors[2]);
+                Utils::log(trim(preg_replace('/\s+/', ' ',$this->_sql)), $this->_params, $errors);
             }
 
-            if($this->_resultset->rowCount() == 0)
+            if($this->_resultset->rowCount() == 0) {
                 $this->_effective = false;
-            else
+            } else {
                 $this->_effective = true;
+            }
 
-            $ns_classname = 'modl\\'.$classname;
+            $ns_classname = 'Modl\\'.$classname;
 
             if(isset($classname)
             && class_exists($ns_classname)
             && $this->_resultset != null
             && $type != 'array') {
-                $results = array();
+                $results = [];
 
                 while($row = $this->_resultset->fetch(\PDO::FETCH_NAMED)) {
 
@@ -207,15 +210,18 @@ class SQL extends Modl {
                     $i++;
                 }
 
-                if(empty($results))
+                if(empty($results)) {
                     return null;
-                else {
-                    foreach($results as $obj)
+                } else {
+                    foreach($results as $obj) {
                         $obj->clean();
-                    if($type == 'list')
+                    }
+
+                    if($type == 'list') {
                         return $results;
-                    elseif($type == 'item')
+                    } elseif($type == 'item') {
                         return $results[0];
+                    }
                 }
             } elseif($type = 'array' && $this->_resultset != null) {
                 $results = $this->_resultset->fetchAll(\PDO::FETCH_ASSOC);
