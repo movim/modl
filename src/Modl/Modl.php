@@ -125,15 +125,20 @@ class Modl
     public function connect()
     {
         try {
+            $params = [
+                \PDO::ATTR_PERSISTENT => true,
+                //\PDO::ATTR_EMULATE_PREPARES => false
+            ];
+
+            if($this->_dbtype == 'mysql') {
+                $params[\PDO::MYSQL_ATTR_FOUND_ROWS] = true;
+            }
+
             $this->_db = new \PDO(
                 $this->_dbtype.':host='.$this->_host.';dbname='.$this->_database.';port='.$this->_port,
                 $this->_username,
                 $this->_password,
-                [
-                    \PDO::ATTR_PERSISTENT => true,
-                    \PDO::MYSQL_ATTR_FOUND_ROWS => true,
-                    //\PDO::ATTR_EMULATE_PREPARES => false
-                ]
+                $params
             );
 
             $this->_connected = true;
