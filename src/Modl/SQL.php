@@ -24,7 +24,10 @@
 
 namespace Modl;
 
-class SQL extends Modl {
+class SQL extends Modl
+{
+    const SQL_DATE = 'Y-m-d H:i:s';
+
     protected $_sql = '';
     private $_resultset;
     private $_params;

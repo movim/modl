@@ -11,10 +11,10 @@ class Utils {
 
     static function getDBList()
     {
-        $dblist = array(
+        $dblist = [
             'mysql' => 'MySQL',
             'pgsql' => 'PostgreSQL'
-            );
+            ];
         return $dblist;
     }
 
