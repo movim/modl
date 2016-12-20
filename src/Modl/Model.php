@@ -24,68 +24,28 @@
 
 namespace Modl;
 
-class Model extends Modl implements \JsonSerializable {
-    protected $_struct;
-    private $_decoded_struct;
-
-    public function __construct() {
-        $this->_decoded_struct = json_decode($this->_struct);
-    }
-
-    public function __get($name) {
-        if($name == '_struct')
-            return $this->_decoded_struct;
-        elseif(property_exists($this, $name)) {
-            return $this->$name;
-        }
-    }
-
-    public function __set($name, $value) {
-        $struct = $this->_decoded_struct;
-
-        if(isset($struct->$name->type)) {
-            $type = $struct->$name->type;
-            switch($type) {
-                case 'int' :
-                    $this->$name = (int)$value;
-                break;
-                case 'date' :
-                    $date = new \DateTime((string)$value);
-                    $now = new \DateTime();
-
-                    if(
-                        $date->format('Y-m-d H:i:s') != '0000-00-00 00:00:00'
-                    //&&  $date->format('Y-m-d H:i:s') != $now->format('Y-m-d H:i:s')
-                    )
-                        $this->$name = $date->format('Y-m-d H:i:s');
-                break;
-                case 'text' :
-                case 'string' :
-                default :
-                    $this->$name = (string)htmlentities($value, ENT_XML1, 'UTF-8', false);
-                break;
-            }
-        } elseif(property_exists($this, $name))
-            $this->$name = (string)$value;
-    }
-
-    public function jsonSerialize() {
+class Model extends Modl implements \JsonSerializable
+{
+    public function jsonSerialize()
+    {
         $this->clean();
         return get_object_vars($this);
     }
 
-    public function toJSON() {
+    public function toJSON()
+    {
         $this->clean();
         return json_encode(get_object_vars($this));
     }
 
-    public function toArray() {
+    public function toArray()
+    {
         $this->clean();
         return get_object_vars($this);
     }
 
-    public function clean() {
-        unset($this->_struct);
+    public function clean()
+    {
         unset($this->_db);
         unset($this->_dbtype);
         unset($this->_username);
@@ -98,7 +58,7 @@ class Model extends Modl implements \JsonSerializable {
         unset($this->_user);
         unset($this->_models);
         unset($this->_connected);
-        unset($this->_decoded_struct);
+        unset($this->_struct);
         unset($this->modelspath);
     }
 }

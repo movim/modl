@@ -7,8 +7,8 @@ use Monolog\Handler\SyslogHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\NormalizerFormatter;
 
-class Utils {
-
+class Utils
+{
     static function getDBList()
     {
         $dblist = [

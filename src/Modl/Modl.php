@@ -118,7 +118,7 @@ class Modl
 
     public function check($apply = false)
     {
-        $msdb = new SmartDB();
+        $msdb = new SmartDB;
         return $msdb->check($apply);
     }
 

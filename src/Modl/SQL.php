@@ -44,7 +44,8 @@ class SQL extends Modl
         $this->_db->beginTransaction();
     }
 
-    protected function commit() {
+    protected function commit()
+    {
         $this->_db->commit();
     }
 
@@ -67,7 +68,7 @@ class SQL extends Modl
                     return;
                 }
             } else {
-                $mainclassname = 'modl\\'.$mainclassname;
+                $mainclassname = 'Modl\\'.$mainclassname;
             }
 
             if(class_exists($mainclassname)) {
@@ -99,28 +100,42 @@ class SQL extends Modl
                     $struct = $mainstruct;
                 }
 
-                if(isset($struct->$ckey)) {
-                    $caract = $struct->$ckey;
+                if(isset($struct[$ckey])) {
+                    $caract = $struct[$ckey];
 
                     if(
-                    ((isset($caract->key) && $caract->key == true)
+                    ((isset($caract['key']) && $caract['key'] == true)
                         ||
-                    (isset($caract->mandatory) && $caract->mandatory == true))
+                    (isset($caract['mandatory']) && $caract['mandatory'] == true))
                     && !isset($value) && !empty($value)) {
                         array_push($this->_warnings, $key.' is not set');
                         return;
                     }
-                    switch($caract->type) {
+
+                    switch($caract['type']) {
+                        case 'bool' :
                         case 'int' :
-                            $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_INT);
+                            $this->_resultset->bindValue(':'.$key, (int)$value, \PDO::PARAM_INT);
                         break;
                         // Seems buggy on MySQL
                         /*case 'bool' :
                             $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_BOOL);
                         break;*/
                         case 'date' :
+                            if(!empty($value)) {
+                                $date = new \DateTime((string)$value);
+                                $this->_resultset->bindValue(':'.$key, $date->format(self::SQL_DATE), \PDO::PARAM_STR);
+                            } else {
+                                $this->_resultset->bindValue(':'.$key, null, \PDO::PARAM_STR);
+                            }
+                        break;
+                        case 'text' :
                         case 'string' :
                         default :
+                            if(!empty($value)) {
+                                $value = (string)htmlentities($value, ENT_XML1, 'UTF-8', false);
+                            }
+
                             $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
                         break;
                     }
@@ -172,32 +187,32 @@ class SQL extends Modl
                 $results = [];
 
                 while($row = $this->_resultset->fetch(\PDO::FETCH_NAMED)) {
-
                     $obj = new $ns_classname;
+
                     foreach($row as $key => $value) {
                         if(isset($value)) {
                             if(is_array($value)) {
                                 $value = current(array_filter($value));
                             }
 
-                            if(property_exists($obj, $key)) {
-                                if(isset($obj->_struct->$key)) {
-                                    switch($obj->_struct->$key->type) {
-                                        case 'int' :
-                                            $obj->$key = (int)$value;
-                                        break;
-                                        case 'bool' :
-                                            $obj->$key = (bool)$value;
-                                        break;
-                                        case 'date' :
-                                        case 'string' :
-                                        default :
-                                            $obj->$key = (string)$value;
-                                        break;
-                                    }
-                                } else {
-                                    $obj->$key = $value;
+                            if(property_exists($obj, $key)
+                            && property_exists($obj, '_struct')
+                            && array_key_exists($key, $obj->_struct)) {
+                                switch($obj->_struct[$key]['type']) {
+                                    case 'int' :
+                                        $obj->$key = (int)$value;
+                                    break;
+                                    case 'bool' :
+                                        $obj->$key = (bool)$value;
+                                    break;
+                                    case 'date' :
+                                    case 'string' :
+                                    default :
+                                        $obj->$key = (string)$value;
+                                    break;
                                 }
+                            } else {
+                                $obj->$key = $value;
                             }
                         }
                     }

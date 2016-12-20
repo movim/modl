@@ -70,12 +70,12 @@ class SmartDB extends SQL {
             break;
         }
 
-        return array($type, $size);
+        return [$type, $size];
     }
 
     public function check($apply = false)
     {
-        $infos = array();
+        $infos = [];
 
         switch($this->_dbtype) {
             case 'mysql':
@@ -96,10 +96,10 @@ class SmartDB extends SQL {
 
             $results = $resultset->fetchAll(\PDO::FETCH_CLASS);
         } else
-            $results = array();
+            $results = [];
 
-        $tables  = array();
-        $columns = array();
+        $tables  = [];
+        $columns = [];
 
         $prim_keys = $this->getKeys();
 
@@ -139,31 +139,33 @@ class SmartDB extends SQL {
             // We remove the default modl column
             unset($extra_columns[$model.'_modl']);
 
-            $classname = 'modl\\'.$model;
+            $classname = 'Modl\\'.$model;
 
-            $keys = array();
+            $keys = [];
             $need_recreate_keys = false;
 
             $m = new $classname;
 
             if(!isset($tables[$model])) {
-                if($apply == true)
+                if($apply == true) {
                     $this->createTable($model);
-                else
+                } else {
                     array_push($infos, $model.' table have to be created');
+                }
             }
 
-            foreach((array)$m->_struct as $key => $value) {
+            foreach($m->_struct as $key => $value) {
                 $name = $model.'_'.$key;
                 if(!isset($columns[$name])) {
-                    if($apply == true)
+                    if($apply == true) {
                         $this->createColumn($model, $key, $value);
-                    else
+                    } else {
                         array_push($infos, $name.' column have to be created');
+                    }
                 } else {
-                    if(!isset($value->size)) $value->size = false;
+                    if(!isset($value['size'])) $value['size'] = false;
 
-                    list($type, $size) = $this->getType($value->type, $value->size);
+                    list($type, $size) = $this->getType($value['type'], $value['size']);
 
                     switch($this->_dbtype) {
                         case 'mysql':
@@ -179,14 +181,14 @@ class SmartDB extends SQL {
                     }
 
                     $changesize = $changenull = false;
-                    if($type == 'varchar' && $dbsize != $value->size) {
+                    if($type == 'varchar' && $dbsize != $value['size']) {
                         $changesize = true;
                     }
 
-                    if(isset($value->mandatory) == $dbnull
-                    && !isset($value->key)) {
+                    if(isset($value['mandatory']) == $dbnull
+                    && !isset($value['key'])) {
                         $changenull = true;
-                        if(isset($value->mandatory)) {
+                        if(isset($value['mandatory'])) {
                             array_push($infos, $name.' column have to be set to not null /!\ null tuples will be deleted');
                         } else {
                             array_push($infos, $name.' column have to be set to nullable');
@@ -197,11 +199,11 @@ class SmartDB extends SQL {
                         if($apply == true)
                             $this->updateColumn($model, $key, $value);
                         else
-                            array_push($infos, $name.' column have to be updated from '.$dbtype.'('.$dbsize.') to '.$type.'('.$value->size.')');
+                            array_push($infos, $name.' column have to be updated from '.$dbtype.'('.$dbsize.') to '.$type.'('.$value['size'].')');
                     }
                 }
 
-                if(isset($value->key) && $value->key) {
+                if(isset($value['key']) && $value['key']) {
                     // We push all the keys
                     array_push($keys, $key);
 
@@ -222,6 +224,8 @@ class SmartDB extends SQL {
             if(!empty($keys) && $need_recreate_keys) {
                 $this->createKeys($model, $keys);
             }
+
+            unset($tables[$model]);
         }
 
         // And we remove the extra columns
@@ -231,14 +235,24 @@ class SmartDB extends SQL {
                 $table = array_shift($exp);
                 $column = implode('_', $exp);
                 $this->deleteColumn($table, $column);
-            } else
+            } else {
                 array_push($infos, $key.' column have to be removed');
+            }
         }
 
-        if(!empty($infos))
+        foreach($tables as $key => $table) {
+            if($apply == true) {
+                $this->dropTable($key);
+            } else {
+                array_push($infos, 'table '.$key.' have to be dropped');
+            }
+        }
+
+        if(!empty($infos)) {
             return $infos;
-        else
+        } else {
             return null;
+        }
     }
 
     private function getKeys()
@@ -262,9 +276,9 @@ class SmartDB extends SQL {
 
             $results = $resultset->fetchAll(\PDO::FETCH_CLASS);
         } else
-            $results = array();
+            $results = [];
 
-        $arr = array();
+        $arr = [];
 
         foreach($results as $row) {
             switch($this->_dbtype) {
@@ -305,6 +319,22 @@ class SmartDB extends SQL {
 
     }
 
+    private function dropTable($name)
+    {
+        Utils::log('Dropping table '.$name);
+        $name = strtolower($name);
+
+        $sql = '
+            drop table '.$name.';
+            ';
+
+        $this->_sql = $sql;
+
+        $this->prepare();
+        $this->run();
+
+    }
+
     private function createColumn($table_name, $column_name, $struct)
     {
         $table_name  = strtolower($table_name);
@@ -314,13 +344,13 @@ class SmartDB extends SQL {
 
         $type = $size = false;
 
-        list($type, $size) = $this->getType($struct->type, $struct->size);
+        list($type, $size) = $this->getType($struct['type'], $struct['size']);
 
         if($type != false && $size != false) {
             $this->_sql = '
                 alter table '.$table_name.'
                 add column '.$column_name.' '.$type.$size;
-            if(isset($struct->mandatory)) {Utils::log('Creating not null '.$column_name);
+            if(isset($struct['mandatory'])) {Utils::log('Creating not null '.$column_name);
                 $this->_sql .= ' not null';
             }
 
@@ -338,11 +368,11 @@ class SmartDB extends SQL {
 
         $type = $size = false;
 
-        list($type, $size) = $this->getType($struct->type, $struct->size);
+        list($type, $size) = $this->getType($struct['type'], $struct['size']);
 
         if($type != false && $size != false) {
             // Remove the tuples that have not null column
-            if(isset($struct->mandatory)) {
+            if(isset($struct['mandatory'])) {
                 $this->_sql = '
                     delete from '.$table_name.'
                     where '.$column_name.' is null
@@ -357,8 +387,8 @@ class SmartDB extends SQL {
                     $this->_sql = '
                         alter table '.$table_name.'
                         modify '.$column_name.' '.$type.$size;
-                    if(isset($struct->mandatory)
-                    && !isset($struct->key))
+                    if(isset($struct['mandatory'])
+                    && !isset($struct['key']))
                         $this->_sql .= '
                             not null
                         ';
@@ -369,11 +399,11 @@ class SmartDB extends SQL {
                         alter column '.$column_name.' type '.$type.$size;
 
                     // And we add or remove the not null restriction
-                    if(isset($struct->mandatory)) {
+                    if(isset($struct['mandatory'])) {
                         $this->_sql .= '
                             , alter column '.$column_name.' set not null
                         ';
-                    } elseif(!isset($struct->key)) {
+                    } elseif(!isset($struct['key'])) {
                         $this->_sql .= '
                             , alter column '.$column_name.' drop not null
                         ';
