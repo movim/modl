@@ -129,6 +129,13 @@ class SQL extends Modl
                                 $this->_resultset->bindValue(':'.$key, null, \PDO::PARAM_STR);
                             }
                         break;
+                        case 'serialized' :
+                            if(!empty($value)) {
+                                $this->_resultset->bindValue(':'.$key, serialize($value), \PDO::PARAM_STR);
+                            } else {
+                                $this->_resultset->bindValue(':'.$key, null, \PDO::PARAM_STR);
+                            }
+                        break;
                         case 'text' :
                         case 'string' :
                         default :
@@ -204,6 +211,9 @@ class SQL extends Modl
                                     break;
                                     case 'bool' :
                                         $obj->$key = (bool)$value;
+                                    break;
+                                    case 'serialized' :
+                                        $obj->$key = unserialize($value);
                                     break;
                                     case 'date' :
                                     case 'string' :

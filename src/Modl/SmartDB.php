@@ -49,6 +49,7 @@ class SmartDB extends SQL {
                     $size = '  ';
                 }
             break;
+            case 'serialized':
             case 'text':
                 if($this->_dbtype == 'mysql')
                     $type = 'longtext';
