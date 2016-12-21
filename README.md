@@ -70,7 +70,7 @@ $conf = [
   'host' => 'localhost', // the host of the database
   'port' => '3306', // the port
   'database' => 'movim' // the name of the database
-  ];
+];
 ```
 
 ## How to code a Model
@@ -140,13 +140,13 @@ class ItemDAO extends SQL
 
         $this->prepare(
             'Item',
-            array(
+            [
                 'name'   => $item->name,
                 'updated'=> $item->updated,
                 'server' => $item->server,
                 'jid'    => $item->jid,
                 'node'   => $item->node
-            )
+            ]
         );
 
         $this->run('Item');
