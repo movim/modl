@@ -63,14 +63,14 @@ Here a directory that will contain all the data models is created. Then the usef
 The setConnectionArray() method has for parameter a PHP array with the following structure.
 
 ```php
-$conf = array(
+$conf = [
   'type' => 'mysql', // or 'pgsql' for a PostGreSQL database
   'username' => 'username', // the user of the database
   'password' => 'password', // the users's password
   'host' => 'localhost', // the host of the database
   'port' => '3306', // the port
   'database' => 'movim' // the name of the database
-  );
+  ];
 ```
 
 ## How to code a Model
@@ -87,51 +87,37 @@ In order to do that you will have to create a new directory in the models direct
 ```php
 namespace Modl;
 
-class Item extends Model {
+class Item extends Model
+{
     public $server;
     public $jid;
     public $name;
     public $node;
     public $updated;
 
-    public function __construct() {
-        $this->_struct = '
-        {
-            "server" :
-                {"type":"string", "size":128, "key":true },
-            "jid" :
-                {"type":"string", "size":64, "key":true },
-            "node" :
-                {"type":"string", "size":128, "key":true },
-            "name" :
-                {"type":"string", "size":128 },
-            "updated" :
-                {"type":"date", "mandatory":true}
-        }';
-
-        parent::__construct();
-    }
+    public $_struct = [
+        'server'    => ['type' => 'string','size' => 64,'key' => true],
+        'jid'       => ['type' => 'string','size' => 64,'key' => true],
+        'node'      => ['type' => 'string','size' => 96,'key' => true],
+        'name'      => ['type' => 'string','size' => 128],
+        'updated'   => ['type' => 'date','mandatory' => true],
+    ];
 }
 ```
 
 The code above is quite simple to understand. The Item inherits from `Modl\Model`. Each column of the table created in the database will be translated to an attribute of the class.
 
-In the constructor, the `_struct` attribute inherited from `Modl\Model` has to be defined to contain the particularities of the other attributes in the form of a JSON packet.
+In the constructor, the `_struct` attribute inherited from `Modl\Model` has to be defined to contain the particularities of the other attributes.
 
-Modl currently supports four types of data:
+Modl currently supports six types of data:
   * **string** for the names, keys…
   * **date** for the dates obviously
   * **int** to use intergers
   * **text** to stock a long string or a big binary value
   * **bool** to use a boolean value
+  * **serialized** to save and retrieve PHP variables in the database
 
 Except for the date type and the bool type, a size can be specified for each type of data using the "size" keyword. Globally, the "mandatory" and "key" keywords are respectively used to (1) forbid any empty value in the attribute to save and (2) specify the attribute as a key of the table. If an attribute is defined as a key, the "mandatory" keyword is useless.
-
-Don't forget to add the following line to apply your modifications.
-
-```php
-parent::__construct();
-```
 
 ### ItemDAO.php
 
@@ -140,8 +126,10 @@ ItemDAO inherits of the `Modl\SQL` class. The following code lets you insert an 
 ```php
 namespace Modl;
 
-class ItemDAO extends SQL {
-    function set(Item $item) {
+class ItemDAO extends SQL
+{
+    function set(Item $item)
+    {
         $this->_sql = '
             update item
             set name   = :name,
@@ -182,13 +170,13 @@ class ItemDAO extends SQL {
 
             $this->prepare(
                 'Item',
-                array(
+                [
                     'name'   => $item->name,
                     'updated'=> $item->updated,
                     'server' => $item->server,
                     'jid'    => $item->jid,
                     'node'   => $item->node
-                )
+                ]
             );
 
             $this->run('Item');
@@ -234,7 +222,7 @@ In the piece of code below, a new instance of Item is created...
 ```php
 $n = new \Modl\Item;
 $n->server = 'movim.eu';
-$n->node   = 'my_little_poney';
+$n->node   = 'pink_floyd';
 …
 ```
 
