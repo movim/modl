@@ -139,10 +139,6 @@ class SQL extends Modl
                         case 'text' :
                         case 'string' :
                         default :
-                            if(!empty($value)) {
-                                $value = (string)htmlentities($value, ENT_XML1, 'UTF-8', false);
-                            }
-
                             $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
                         break;
                     }
