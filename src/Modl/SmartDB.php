@@ -31,9 +31,12 @@ class SmartDB extends SQL {
         parent::inject($this);
     }
 
-    private function getType($ctype, $csize = false)
+    private function getType($struct)
     {
-        $type = $size = false;
+        $type = $size = $csize = false;
+
+        $ctype = $struct['type'];
+        if(array_key_exists('size', $struct)) $csize = $struct['size'];
 
         switch($ctype) {
             case 'int':
@@ -166,7 +169,7 @@ class SmartDB extends SQL {
                 } else {
                     if(!isset($value['size'])) $value['size'] = false;
 
-                    list($type, $size) = $this->getType($value['type'], $value['size']);
+                    list($type, $size) = $this->getType($value);
 
                     switch($this->_dbtype) {
                         case 'mysql':
@@ -209,7 +212,8 @@ class SmartDB extends SQL {
                     array_push($keys, $key);
 
                     // If one of them is not in the database
-                    if($prim_keys[$name] != true) {
+                    if(array_key_exists($name, $prim_keys)
+                    && $prim_keys[$name] != true) {
                         // If we apply the changes we recreate all the keys
                         if($apply == true) {
                             $need_recreate_keys = true;
@@ -345,7 +349,7 @@ class SmartDB extends SQL {
 
         $type = $size = false;
 
-        list($type, $size) = $this->getType($struct['type'], $struct['size']);
+        list($type, $size) = $this->getType($struct);
 
         if($type != false && $size != false) {
             $this->_sql = '
@@ -369,7 +373,7 @@ class SmartDB extends SQL {
 
         $type = $size = false;
 
-        list($type, $size) = $this->getType($struct['type'], $struct['size']);
+        list($type, $size) = $this->getType($struct);
 
         if($type != false && $size != false) {
             // Remove the tuples that have not null column
