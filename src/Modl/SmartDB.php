@@ -212,8 +212,7 @@ class SmartDB extends SQL {
                     array_push($keys, $key);
 
                     // If one of them is not in the database
-                    if(array_key_exists($name, $prim_keys)
-                    && $prim_keys[$name] != true) {
+                    if(!array_key_exists($name, $prim_keys)) {
                         // If we apply the changes we recreate all the keys
                         if($apply == true) {
                             $need_recreate_keys = true;
