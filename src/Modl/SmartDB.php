@@ -402,6 +402,11 @@ class SmartDB extends SQL {
                         alter table '.$table_name.'
                         alter column '.$column_name.' type '.$type.$size;
 
+                    if($type == 'bool') {
+                        $this->_sql .= '
+                            using '.$column_name.'::boolean';
+                    }
+
                     // And we add or remove the not null restriction
                     if(isset($struct['mandatory'])) {
                         $this->_sql .= '
