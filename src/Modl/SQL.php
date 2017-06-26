@@ -183,6 +183,14 @@ class SQL extends Modl
 
             $ns_classname = 'Modl\\'.$classname;
 
+            if($type == 'count' && $this->_resultset != null) {
+                $results = $this->_resultset->fetchAll(\PDO::FETCH_ASSOC);
+                if(is_array($results) && isset($results[0])) {
+                    $arr = array_values($results[0]);
+                    return (int)$arr[0];
+                }
+            }
+
             if(isset($classname)
             && class_exists($ns_classname)
             && $this->_resultset != null

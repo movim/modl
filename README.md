@@ -214,6 +214,12 @@ You can also return the raw array using the following.
 return $this->run(null, 'array');
 ```
 
+If your SQL request return a single cell containing a `count(*)` you can directly return the value of the `count` this way.
+
+```php
+return $this->run(null, 'count');
+```
+
 ### Call to the model
 Once Modl has been loaded, the defined models can be called wherever you want in the code. Model is a [Singleton](https://en.wikipedia.org/wiki/Singleton_pattern), that is why the connection with the database is kept during the whole execution.
 
