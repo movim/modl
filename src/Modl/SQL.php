@@ -49,6 +49,55 @@ class SQL extends Modl
         $this->_db->commit();
     }
 
+    public function set($model)
+    {
+        $name = (new \ReflectionClass($model))->getShortName();
+
+        $this->_sql = '
+            update '.strtolower($name). ' set ';
+
+        $data = [];
+
+        $set = false;
+        foreach($model->_struct as $column => $value) {
+            if(!isset($value['key']) || $value['key'] !== true) {
+                if($set) $this->_sql .= ', ';
+                $set = true;
+
+                $this->_sql .= $column . ' = :'.$column;
+            }
+
+            $data[$column] = $model->$column;
+        }
+
+        $this->_sql .= ' where ';
+        $where = false;
+        foreach($model->_struct as $column => $value) {
+            if(isset($value['key']) && $value['key'] === true) {
+                if($where) $this->_sql .= ' and ';
+                $where = true;
+
+                $this->_sql .= $column . ' = :'.$column;
+            }
+        }
+
+        $this->prepare($name, $data);
+        $this->run($name);
+
+        if(!$this->_effective) {
+            $this->_sql = '
+                insert into '.strtolower($name).
+                ' ('.
+                implode(',', array_keys($data)).
+                ' ) values (:'.
+                implode(',:', array_keys($data)).
+                ' )';
+
+            $this->prepare($name, $data);
+            return $this->run($name);
+        }
+    }
+
     public function prepare($mainclassname = null, $params = false)
     {
         if($this->_connected) {
