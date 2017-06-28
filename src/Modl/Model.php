@@ -58,7 +58,6 @@ class Model extends Modl implements \JsonSerializable
         unset($this->_user);
         unset($this->_models);
         unset($this->_connected);
-        unset($this->_struct);
         unset($this->modelspath);
     }
 }
