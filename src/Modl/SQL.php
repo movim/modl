@@ -161,10 +161,12 @@ class SQL extends Modl
                         return;
                     }
 
+                    $success = false;
+
                     switch($caract['type']) {
                         case 'bool' :
                         case 'int' :
-                            $this->_resultset->bindValue(':'.$key, (int)$value, \PDO::PARAM_INT);
+                            $success = $this->_resultset->bindValue(':'.$key, (int)$value, \PDO::PARAM_INT);
                         break;
                         // Seems buggy on MySQL
                         /*case 'bool' :
@@ -173,23 +175,27 @@ class SQL extends Modl
                         case 'date' :
                             if(!empty($value)) {
                                 $date = new \DateTime((string)$value);
-                                $this->_resultset->bindValue(':'.$key, $date->format(self::SQL_DATE), \PDO::PARAM_STR);
+                                $success = $this->_resultset->bindValue(':'.$key, $date->format(self::SQL_DATE), \PDO::PARAM_STR);
                             } else {
-                                $this->_resultset->bindValue(':'.$key, null, \PDO::PARAM_STR);
+                                $success = $this->_resultset->bindValue(':'.$key, null, \PDO::PARAM_STR);
                             }
                         break;
                         case 'serialized' :
                             if(!empty($value)) {
-                                $this->_resultset->bindValue(':'.$key, serialize($value), \PDO::PARAM_STR);
+                                $success = $this->_resultset->bindValue(':'.$key, serialize($value), \PDO::PARAM_STR);
                             } else {
-                                $this->_resultset->bindValue(':'.$key, null, \PDO::PARAM_STR);
+                                $success = $this->_resultset->bindValue(':'.$key, null, \PDO::PARAM_STR);
                             }
                         break;
                         case 'text' :
                         case 'string' :
                         default :
-                            $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
+                            $success = $this->_resultset->bindValue(':'.$key, $value, \PDO::PARAM_STR);
                         break;
+                    }
+
+                    if(!$success) {
+                        array_push($this->_warnings, 'Cannot bind value "' .$key.'" to the request');
                     }
                 } else {
                     // Call the logger here
