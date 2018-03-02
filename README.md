@@ -94,6 +94,7 @@ class Item extends Model
     public $name;
     public $node;
     public $updated;
+    public $hash;
 
     public $_struct = [
         'server'    => ['type' => 'string','size' => 64,'key' => true],
@@ -101,6 +102,12 @@ class Item extends Model
         'node'      => ['type' => 'string','size' => 96,'key' => true],
         'name'      => ['type' => 'string','size' => 128],
         'updated'   => ['type' => 'date','mandatory' => true],
+        'hash'      => ['type' => 'string','size' => 64]
+    ];
+
+    public $_uniques = [
+        ['server', 'jid'],
+        ['hash']
     ];
 }
 ```
@@ -118,6 +125,8 @@ Modl currently supports six types of data:
   * **serialized** to save and retrieve PHP variables in the database
 
 Except for the date type and the bool type, a size can be specified for each type of data using the "size" keyword. Globally, the "mandatory" and "key" keywords are respectively used to (1) forbid any empty value in the attribute to save and (2) specify the attribute as a key of the table. If an attribute is defined as a key, the "mandatory" keyword is useless.
+
+Unique constraints can also be defined using the `$_uniques` array.
 
 ### ItemDAO.php
 
@@ -235,7 +244,7 @@ $n->node   = 'pink_floyd';
 And sent to the database.
 
 ```php
-$nd = new \Modl\ItemDAO();
+$nd = new \Modl\ItemDAO;
 $nd->set($n);
 ```
 
@@ -247,7 +256,7 @@ SmartDB allows not only to create tables automagically by defining models but al
 It's quite easy to understand how it works. When Modl and its models are loaded the `check()` method launches SmartDB.
 
 ```php
-$md = Modl\Modl::getInstance();
+$md = Modl\Modl::getInstance;
 $infos = $md->check();
 ```
 
