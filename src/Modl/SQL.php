@@ -49,7 +49,7 @@ class SQL extends Modl
         $this->_db->commit();
     }
 
-    public function set($model)
+    public function set($model, $uniques = false)
     {
         $name = (new \ReflectionClass($model))->getShortName();
 
@@ -72,12 +72,22 @@ class SQL extends Modl
 
         $this->_sql .= ' where ';
         $where = false;
-        foreach($model->_struct as $column => $value) {
-            if(isset($value['key']) && $value['key'] === true) {
+
+        if ($uniques) {
+            foreach($model->_uniques[0] as $column) {
                 if($where) $this->_sql .= ' and ';
                 $where = true;
 
                 $this->_sql .= $column . ' = :'.$column;
+            }
+        } else {
+            foreach($model->_struct as $column => $value) {
+                if(isset($value['key']) && $value['key'] === true) {
+                    if($where) $this->_sql .= ' and ';
+                    $where = true;
+
+                    $this->_sql .= $column . ' = :'.$column;
+                }
             }
         }
 
@@ -96,6 +106,15 @@ class SQL extends Modl
             $this->prepare($name, $data);
             return $this->run($name);
         }
+    }
+
+    /*
+     * Workaround to use the first uniques tuple as "keys", to overcome the MySQL
+     * key size limitation
+     */
+    public function setWithUniques($model)
+    {
+        $this->set($model, true);
     }
 
     public function prepare($mainclassname = null, $params = false)
