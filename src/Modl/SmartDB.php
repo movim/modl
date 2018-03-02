@@ -54,17 +54,11 @@ class SmartDB extends SQL
             break;
             case 'serialized':
             case 'text':
-                if ($this->_dbtype == 'mysql')
-                    $type = 'longtext';
-                else
-                    $type = 'text';
+                $type = ($this->_dbtype == 'mysql') ? 'longtext' : 'text';
                 $size = '  ';
             break;
             case 'date':
-                if ($this->_dbtype == 'mysql')
-                    $type = 'datetime';
-                else
-                    $type = 'timestamp';
+                $type = ($this->_dbtype == 'mysql') ? 'datetime' : 'timestamp';
                 $size = '  ';
             break;
             case 'string':
@@ -81,17 +75,15 @@ class SmartDB extends SQL
     {
         $infos = [];
 
-        switch ($this->_dbtype) {
-            case 'mysql':
-                $where = ' table_schema = :database';
-            break;
-            case 'pgsql':
-                $where = ' table_catalog = :database and table_schema = \'public\'';
-            break;
-        }
+        $where = ($this->_dbtype == 'mysql')
+            ? 'table_schema = :database'
+            : 'table_catalog = :database and table_schema = \'public\'';
 
-        $sql = '
-            select * from information_schema.columns where'.$where;
+        $sql = 'select * from information_schema.columns where ' . $where;
+
+        $results = [];
+        $tables  = [];
+        $columns = [];
 
         if (isset($this->_db)) {
             $resultset = $this->_db->prepare($sql);
@@ -99,14 +91,8 @@ class SmartDB extends SQL
             $resultset->execute();
 
             $results = $resultset->fetchAll(\PDO::FETCH_CLASS);
-        } else {
-            $results = [];
         }
 
-        $tables  = [];
-        $columns = [];
-
-        $prim_keys = $this->getKeys();
         $uniques_constraints = $this->getUniques();
 
         $table = '';
@@ -141,14 +127,14 @@ class SmartDB extends SQL
         foreach ($models as $model)
         {
             $model = strtolower($model);
+            $prim_keys = $this->getKeys($model);
 
             // We remove the default modl column
             unset($extra_columns[$model.'_modl']);
 
-            $classname = 'Modl\\'.$model;
+            $classname = 'Modl\\' . $model;
 
             $keys = [];
-            $need_recreate_keys = false;
 
             $m = new $classname;
 
@@ -211,18 +197,7 @@ class SmartDB extends SQL
                 }
 
                 if (isset($value['key']) && $value['key']) {
-                    // We push all the keys
                     array_push($keys, $key);
-
-                    // If one of them is not in the database
-                    if (!array_key_exists($name, $prim_keys)) {
-                        // If we apply the changes we recreate all the keys
-                        if ($apply == true) {
-                            $need_recreate_keys = true;
-                        } else {
-                            array_push($infos, $name.' key have to be created, /!\ the table will be truncated');
-                        }
-                    }
                 }
 
                 unset($extra_columns[$name]);
@@ -245,8 +220,12 @@ class SmartDB extends SQL
                 }
             }
 
-            if (!empty($keys) && $need_recreate_keys) {
-                $this->createKeys($model, $keys);
+            if ($keys !== $prim_keys) {
+                if ($apply == true) {
+                    $this->updateKeys($model, $keys);
+                } else {
+                    array_push($infos, $model.' keys have to be updated, /!\ the table will be truncated');
+                }
             }
 
             unset($tables[$model]);
@@ -287,25 +266,23 @@ class SmartDB extends SQL
         return null;
     }
 
-    private function getKeys()
+    private function getKeys($table_name)
     {
-        switch ($this->_dbtype) {
-            case 'mysql':
-                $where = ' table_schema = :database';
-            break;
-            case 'pgsql':
-                $where = ' table_catalog = :database and table_schema = \'public\'';
-            break;
-        }
+        $where = ($this->_dbtype == 'mysql')
+            ? 'table_schema = :database and table_name = :table_name'
+            : 'table_catalog = :database
+                    and table_schema = \'public\'
+                    and table_name = :table_name';
 
-        $sql = '
-            select * from information_schema.key_column_usage where'.$where.' order by table_name';
+        $sql = 'select * from information_schema.key_column_usage where
+                constraint_name not like \'%_unique\' and ' . $where;
 
         $results = [];
 
         if (isset($this->_db)) {
             $resultset = $this->_db->prepare($sql);
             $resultset->bindValue(':database', $this->_database, \PDO::PARAM_STR);
+            $resultset->bindValue(':table_name', $table_name, \PDO::PARAM_STR);
             $resultset->execute();
 
             $results = $resultset->fetchAll(\PDO::FETCH_CLASS);
@@ -314,14 +291,11 @@ class SmartDB extends SQL
         $arr = [];
 
         foreach ($results as $row) {
-            switch ($this->_dbtype) {
-                case 'mysql':
-                    $arr[$row->TABLE_NAME.'_'.$row->COLUMN_NAME] = true;
-                break;
-                case 'pgsql':
-                    $arr[$row->table_name.'_'.$row->column_name] = true;
-                break;
-            }
+            array_push($arr,
+                $this->_dbtype == 'mysql'
+                ? $row->COLUMN_NAME
+                : $row->column_name
+            );
         }
 
         return $arr;
@@ -329,18 +303,13 @@ class SmartDB extends SQL
 
     public function getUniques()
     {
-        switch ($this->_dbtype) {
-            /*case 'mysql':
-                $where = ' table_schema = :database';
-            break;*/
-            case 'pgsql':
-                $where = ' table_catalog = :database and table_schema = \'public\'';
-            break;
-        }
+        $where = ($this->_dbtype == 'mysql')
+            ? 'table_schema = :database'
+            : 'table_catalog = :database and table_schema = \'public\'';
 
         $sql = '
             select * from information_schema.key_column_usage
-            where'.$where.'
+            where ' . $where . '
             and constraint_name like \'%_unique\'
             order by table_name';
 
@@ -357,7 +326,11 @@ class SmartDB extends SQL
         $arr = [];
 
         foreach ($results as $row) {
-            $arr[substr($row->constraint_name, 0, -7)] = true;
+            $arr[substr(
+                ($this->_dbtype == 'mysql') ? $row->CONSTRAINT_NAME : $row->constraint_name,
+                0,
+                -7
+            )] = true;
         }
 
         return $arr;
@@ -367,19 +340,10 @@ class SmartDB extends SQL
     {
         Utils::log('Creating the unique contraint ('. implode('_', $unique) .') for '.$table_name);
 
-        switch ($this->_dbtype) {
-            /*case 'mysql':
-                $this->_sql = '
-                    alter table '.$table_name.'
-                    drop primary key';
-            break;*/
-            case 'pgsql':
-                $this->_sql = '
-                    alter table ' . $table_name . '
-                    add constraint ' . $table_name . '_' . implode('_', $unique) . '_unique
-                    unique (' . implode(',', $unique) . ')';
-            break;
-        }
+        $this->_sql = '
+            alter table ' . $table_name . '
+            add constraint ' . $table_name . '_' . implode('_', $unique) . '_unique
+            unique (' . implode(',', $unique) . ')';
 
         $this->prepare();
         $this->run();
@@ -391,10 +355,12 @@ class SmartDB extends SQL
 
         Utils::log('Dropping the unique constraint ' . $unique);
 
+        $constraint = $this->_dbtype == 'mysql' ? 'index' : 'constraint';
+
         $this->_sql = '
             alter table ' . $table . '
-            drop constraint ' . $unique . '_unique
-            ';
+            drop ' . $constraint . ' ' . $unique . '_unique';
+
         $this->prepare();
         $this->run();
     }
@@ -404,40 +370,28 @@ class SmartDB extends SQL
         Utils::log('Creating table '.$name);
         $name = strtolower($name);
 
-        $sql = '
-            create table '.$name.'
-            (
+        $this->_sql = '
+            create table '.$name.' (
                 modl int
-            );
-            ';
+            )';
 
-        switch ($this->_dbtype) {
-            case 'mysql':
-                $sql .= ' CHARACTER SET utf8 COLLATE utf8_bin';
-            break;
+        if ($this->_dbtype == 'mysql') {
+            $this->_sql .= ' CHARACTER SET utf8 COLLATE utf8_bin';
         }
-
-        $this->_sql = $sql;
 
         $this->prepare();
         $this->run();
-
     }
 
     private function dropTable($name)
     {
-        Utils::log('Dropping table '.$name);
         $name = strtolower($name);
 
-        $sql = '
-            drop table '.$name.';
-            ';
-
-        $this->_sql = $sql;
+        Utils::log('Dropping table ' . $name);
+        $this->_sql = 'drop table ' . $name;
 
         $this->prepare();
         $this->run();
-
     }
 
     private function createColumn($table_name, $column_name, $struct)
@@ -445,7 +399,7 @@ class SmartDB extends SQL
         $table_name  = strtolower($table_name);
         $column_name = strtolower($column_name);
 
-        Utils::log('Creating column '.$column_name);
+        Utils::log('Creating column ' . $column_name);
 
         $type = $size = false;
 
@@ -538,12 +492,30 @@ class SmartDB extends SQL
             alter table '.$table_name.'
             drop column '.$column_name.'
             ';
+
         $this->prepare();
         $this->run();
     }
 
-    private function createKeys($table_name, $keys)
+    private function updateKeys($table_name, $keys)
     {
+        $this->_sql = 'alter table ' . $table_name . ' ';
+        $this->_sql .= ($this->_dbtype == 'mysql')
+            ? 'drop primary key'
+            : 'drop constraint ' . $table_name . '_prim_key';
+
+        $this->prepare();
+        $this->run();
+
+        if (empty($keys)) return;
+
+        // Do we really need to do this ?
+        $this->_sql = '
+            truncate table '.$table_name;
+
+        $this->prepare();
+        $this->run();
+
         $pk = '';
 
         foreach ($keys as $k) {
@@ -553,29 +525,6 @@ class SmartDB extends SQL
         $pk = substr_replace($pk, '', -1);
 
         Utils::log('Creating the keys '.$pk.' for '.$table_name);
-
-        // Do we really need to do this ?
-        $this->_sql = '
-            truncate table '.$table_name;
-
-        $this->prepare();
-        $this->run();
-
-        switch ($this->_dbtype) {
-            case 'mysql':
-                $this->_sql = '
-                    alter table '.$table_name.'
-                    drop primary key';
-            break;
-            case 'pgsql':
-                $this->_sql = '
-                    alter table '.$table_name.'
-                    drop constraint '.$table_name.'_prim_key';
-            break;
-        }
-
-        $this->prepare();
-        $this->run();
 
         $this->_sql = '
             alter table '.$table_name.'
