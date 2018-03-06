@@ -148,6 +148,11 @@ class SmartDB extends SQL
 
             foreach ($m->_struct as $key => $value) {
                 $name = $model.'_'.$key;
+
+                if (isset($value['key']) && $value['key']) {
+                    array_push($keys, $key);
+                }
+
                 if (!isset($columns[$name])) {
                     if ($apply == true) {
                         $this->createColumn($model, $key, $value);
@@ -196,27 +201,25 @@ class SmartDB extends SQL
                     }
                 }
 
-                if (isset($value['key']) && $value['key']) {
-                    array_push($keys, $key);
-                }
-
                 unset($extra_columns[$name]);
             }
 
-            foreach ($m->_uniques as $unique) {
-                if (!isset($uniques_constraints[$model . '_' . implode('_', $unique)])) {
-                    if ($apply == true) {
-                        $this->createUnique($model, $unique);
+            if (isset($m->_uniques)) {
+                foreach ($m->_uniques as $unique) {
+                    if (!isset($uniques_constraints[$model . '_' . implode('_', $unique)])) {
+                        if ($apply == true) {
+                            $this->createUnique($model, $unique);
+                        } else {
+                            array_push(
+                                $infos,
+                                'a unique constraint for ' .
+                                $model .
+                                ' (' . implode(',', $unique). ') have to be created'
+                            );
+                        }
                     } else {
-                        array_push(
-                            $infos,
-                            'a unique constraint for ' .
-                            $model .
-                            ' (' . implode(',', $unique). ') have to be created'
-                        );
+                        unset($uniques_constraints[$model . '_' . implode('_', $unique)]);
                     }
-                } else {
-                    unset($uniques_constraints[$model . '_' . implode('_', $unique)]);
                 }
             }
 

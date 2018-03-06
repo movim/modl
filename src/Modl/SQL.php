@@ -48,8 +48,21 @@ class SQL extends Modl
     {
         $this->_db->commit();
     }
+    /*
+     * Workaround to use the first uniques tuple as "keys", to overcome the MySQL
+     * key size limitation
+     */
+    public function setWithUniques($model)
+    {
+        return $this->set($model, true);
+    }
 
-    public function set($model, $uniques = false)
+    public function set($model)
+    {
+        return $this->setTable($model);
+    }
+
+    private function setTable($model, $uniques = false)
     {
         $name = (new \ReflectionClass($model))->getShortName();
 
@@ -106,15 +119,6 @@ class SQL extends Modl
             $this->prepare($name, $data);
             return $this->run($name);
         }
-    }
-
-    /*
-     * Workaround to use the first uniques tuple as "keys", to overcome the MySQL
-     * key size limitation
-     */
-    public function setWithUniques($model)
-    {
-        $this->set($model, true);
     }
 
     public function prepare($mainclassname = null, $params = false)
