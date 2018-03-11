@@ -11,11 +11,10 @@ class Utils
 {
     static function getDBList()
     {
-        $dblist = [
+        return [
             'mysql' => 'MySQL',
             'pgsql' => 'PostgreSQL'
-            ];
-        return $dblist;
+        ];
     }
 
     static function loadModel($name)
@@ -36,19 +35,21 @@ class Utils
 
     public static function log($message, $arr = false, $arr2 = false)
     {
-        if(LOG_LEVEL != null && LOG_LEVEL > 0) {
+        if (LOG_LEVEL != null && LOG_LEVEL > 0) {
             $log = new Logger('modl');
             $log->pushHandler(new SyslogHandler('modl'));
 
-            if(LOG_LEVEL > 1)
+            if (LOG_LEVEL > 1) {
                 $log->pushHandler(new StreamHandler(LOG_PATH.'/sql.log', Logger::DEBUG));
+            }
 
-            if(is_array($arr) && is_array($arr2))
+            if (is_array($arr) && is_array($arr2)) {
                 $log->addInfo($message, $arr, $arr2);
-            elseif(is_array($arr))
+            } elseif (is_array($arr)) {
                 $log->addInfo($message);
-            else
+            } else {
                 $log->addInfo(serialize($message));
+            }
         }
     }
 }
