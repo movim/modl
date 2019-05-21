@@ -113,7 +113,7 @@ class Modl
             }
 
             $this->_db = new \PDO(
-                $this->_dbtype.':host='.$this->_host.';dbname='.$this->_database.';port='.$this->_port,
+                $this->dsn(),
                 $this->_username,
                 $this->_password,
                 $params
@@ -125,6 +125,25 @@ class Modl
             Utils::log($e->getMessage());
             die();
         }
+    }
+
+    protected function dsn()
+    {
+        $dsn = $this->_dbtype.':';
+
+        if($this->_host) {
+          $dsn .= 'host='.$this->_host;
+        }
+
+        if($this->_database) {
+          $dsn .= ';dbname='.$this->_database;
+        }
+
+        if($this->_port) {
+          $dsn .= ';port='.$this->_port;
+        }
+
+        return $dsn;
     }
 
     protected function inject()
